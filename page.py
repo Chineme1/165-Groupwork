@@ -2,7 +2,7 @@
 import sys
 
 #assuming that every column is either a string or int of some predetermined max size
-#also not efficient storage in that as I convert the int into a string will only be able to store 10^x possible values as opposed to 16^x where x = number of bytes. will fix later
+#also not efficient storage in that as I convert the int into a string will only be able to store 10^x possible values as opposed to 256^x where x = number of bytes. will fix later
 class Page:
 
     def __init__(self, size):
