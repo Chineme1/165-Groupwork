@@ -1,7 +1,9 @@
 """
 A data strucutre holding indices for various columns of a table. Key column should be indexd by default, other columns can be indexed through this object. Indices are usually B-Trees, but other data structures can be used as well.
 """
-# need to change to allow insertions of equal keys
+# may need to change to allow insertions of equal keys. seems like it kinda works?
+from random import randrange
+from time import process_time
 
 class Index:
 
@@ -190,7 +192,7 @@ class BTree:
         else:
             return(self.find(key, node.middleChild))
             
-    def findRange(self, low, high, node, output):
+    def findRange(self, low, high, node, output): # need to test more
         if node == None:
             return(output)
         if low <= node.entries[0].key:
@@ -206,15 +208,26 @@ class BTree:
         return(output)
 
 tree = BTree() 
-tree.insert(1, 1, tree.root)
-tree.insert(10, 2, tree.root)
-tree.insert(7, 3, tree.root)
-tree.insert(4, 4, tree.root)
-tree.insert(100, 5, tree.root)
-tree.insert(5, 6, tree.root)
-tree.insert(8, 7, tree.root)
-tree.insert(9, 8, tree.root)
-output = []
-print(tree.find(7, tree.root, output))
-output = []
-print(tree.findRange(1, 10, tree.root, output))
+# tree.insert(1, 1, tree.root)
+# tree.insert(10, 2, tree.root)
+# tree.insert(7, 3, tree.root)
+# tree.insert(4, 4, tree.root)
+# tree.insert(100, 5, tree.root)
+# tree.insert(5, 6, tree.root)
+# tree.insert(8, 7, tree.root)
+# tree.insert(9, 8, tree.root)
+# output = []
+# print(tree.find(7, tree.root, output))
+# output = []
+# print(tree.findRange(1, 10, tree.root, output))
+insert_time_0 = process_time()
+for i in range (0, 10000):
+    num = randrange(0, 100000)
+    tree.insert(num, num, tree.root)
+    output = []
+    tree.find(num, tree.root, output)
+    if output[0] != num:
+        print("something went wrong")
+insert_time_1 = process_time()
+
+print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
