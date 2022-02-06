@@ -193,11 +193,11 @@ class BTree:
     def findRange(self, low, high, node, output):
         if node == None:
             return(output)
-        if low >= node.entries[0].key:
+        if low <= node.entries[0].key:
             output = (self.findRange(low, high, node.leftChild, output))
         if low <= node.entries[0].key and high >= node.entries[0].key:
             output.append(node.entries[0].RID)
-        if node.numEntries == 1 or high <= node.entries[1].key:
+        if node.numEntries == 1 or high >= node.entries[1].key:
             output = (self.findRange(low, high, node.rightChild, output))
         if node.numEntries == 2 and low <= node.entries[1].key and high >= node.entries[1].key:
             output.append(node.entries[1].RID)
