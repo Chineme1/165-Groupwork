@@ -5,6 +5,7 @@ INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
 TIMESTAMP_COLUMN = 2
 SCHEMA_ENCODING_COLUMN = 3
+KEY_COLUMN = 4 #for the user
 
 
 class Record:
@@ -47,23 +48,24 @@ class Table:
         self.page_ranges_num = 0
         self.page_ranges = []
         self.index = Index(self)
+        self.num_records = 0
         pass
     
     """
     This function creat page ranges, and return the pr_key of the created page range
 
     """
-    def creat_page_range(self):
+    def create_page_range(self):
 
         if self.unsigned_columns > 16:
             num_columns = 16
             self.unsigned_columns -= 16
-        else 
+        else: 
             num_columns = self.unsigned_columns
             self.unsigned_columns = 0
 
         pr_index = len(self.page_ranges_num)
-        new_page_range = PageRange( num_columns, self.key, pr_index)
+        new_page_range = PageRange(num_columns, self.key, pr_index)
         self.page_ranges.append(new_page_range)        
         self.page_ranges_num += 1
         return pr_index
