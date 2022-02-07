@@ -1,3 +1,4 @@
+from lstore.table import Table
 
 class Page:
 
@@ -6,7 +7,7 @@ class Page:
         self.data = bytearray(4096)
 
     def has_capacity(self):
-        if self.num_records == 512 :
+        if self.num_records == 512 : #4096 bytes divided by the 8 bytes == 512
             return False
         else:
             return True
@@ -27,10 +28,13 @@ class Page:
             return False
 
 class PageRange:
-    def __init__(self):
-        self.TP =1
+    def __init__(self,columns):
+        self.columns = columns
+        self.TP = 1
         self.BP = 0
-        self.hold = [None*14]
+        #TP1 = TP(columns) #necessary?
+        #BP1 = BP(columns) #necessary?
+        self.hold = [None*16]
     
     def I_TP(self,value):
         x1 = Page()
@@ -46,10 +50,40 @@ class PageRange:
             return False
 
     def has_capacity(self):
-        if self.BP == 13:
+        if self.BP == 16:
             return False
         else:
             return True
 
+class BP:
+    def __init__(self,columns):
+        self.columns = columns
+        self.hold = [None* columns] #Physiical holder
+        self.counter = 0
+    def I_PP(self):
+        if self.has_capacity:
+    
+
+
+    def has_capacity(self):
+        if self.columns == columns
+
+    def write(self,value, column):
+        page = (self.counter/512)*self.columns+column
+        position = self.counter%512 #Not needed for now
+        if position == 0:
+            self.counter +=1
+            x0 = Page()
+            self.hold[page] = x0
+            x0.write(value)
+        else:
+            self.counter +=1
+            self.hold[page].write(value)
+            
+
+    def read(self, position, column):
+        page = (position/512)*self.columns+column
+        position2 = position%512
+        return(self.hold[page].read(position2))#Potentially wrong
 
 
