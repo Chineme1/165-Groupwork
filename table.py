@@ -1,6 +1,6 @@
 from msilib.schema import tables
 from lstore.index import Index
-from lstore.page import Page
+from lstore.page import BP
 from time import time
 
 INDIRECTION_COLUMN = 0
@@ -27,13 +27,26 @@ class PageRange:
 
     def __init__(self,num_columns,pr_key,key):
         self.num_colums = num_columns
-        self.base_pages = []
+        self.base_pages = [None]* 16
         self.count_base_pages = 0
         self.pr_key = pr_key
         self.key = key
     
-    def read(self,num_page):
-        return self.base_pages[num_page]
+    def read(self,position,column):
+        base_page = position // 512                 #index of base page
+        base_page_position = position % 512         #position inside base page we are reading
+        return(self.base_pages[base_page].read(base_page_position,column))
+
+    def write(self,value,column):
+        base_page = self.num_colums // 512
+        base_page_position = self.num_colums % 512
+        if base_page_position == 0:
+            self.count_base_pages += 1
+            x0 = BP()
+            self.base_pages[base_page] = x0
+            x0.write(value,column)
+        else:
+            self.base_pages[base_page].write(value,column)
 
     def has_capacity(self): 
         if (self.base_pages <= 15):
@@ -75,19 +88,26 @@ class Table:
 
     def page_directory(RID):
 
-        num_page_range = RID//8192
-        num_page = (RID%8192)//512
-        return num_page_range, num_page
+        num_page_range = RID//8192              #index of page range
+        num_base_page = (RID%8192)//512         #index of base page
+        
+        return num_page_range, num_base_page
 
     def read(self,RID,column):
-        num_page_range, num_page = self.table.page_directory(RID)
-        return Page().read(PageRange().read(self.page_ranges[num_page_range],num_page),column*8:column*8+7))
+        num_page_range, num_base_page = self.page_directory(RID)
+        return self.page_ranges[num_page_range].read(num_base_page,column)
     
-    def write(self,value):
+    def write(self,value,column):
+        page_range = self.num_columns // 8192
+        page_range_position = self.num_columns % 8192
+        if page_range_position == 0:
+            self.page_ranges_num += 1
+            x0 = PageRange()
+            self.page_ranges[page_range] = x0
+            x0.write(value,column)
+        else:
+            self.page_ranges[page_range].write(value,column)
 
-        
-    
-    
 
     def __merge(self):
         print("merge is happening")
