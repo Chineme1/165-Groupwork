@@ -26,6 +26,9 @@ class Page:
             self.num_records += 1
         else:
             return False
+    def write2(self, value, position):
+        self.num_records[position*8 : position*8+7] = value
+        return(True)
 
 class PageRange:
     def __init__(self,columns):
@@ -60,13 +63,15 @@ class BP:
         self.columns = columns
         self.hold = [None* columns] #Physiical holder
         self.counter = 0
-    def I_PP(self):
-        if self.has_capacity:
+    
+    
+        #def I_PP(self):
+        # if self.has_capacity:
     
 
 
-    def has_capacity(self):
-        if self.columns == columns
+    #def has_capacity(self):
+    #   if self.columns == columns
 
     def write(self,value, column):
         page = (self.counter/512)*self.columns+column
@@ -79,6 +84,11 @@ class BP:
         else:
             self.counter +=1
             self.hold[page].write(value)
+    def write2(self, value, column, position):
+        page = (self.counter/512)*position+column
+        position2 = position%512
+        self.hold[page].write2(value, position2)
+        return (True)
             
 
     def read(self, position, column):
