@@ -84,7 +84,13 @@ class Query:
     """
 
     def sum(self, start_range, end_range, aggregate_column_index):
-        pass
+        def sum(self, start_range, end_range, aggregate_column_index):
+        output = []
+        self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
+        num = 0
+        for i in output:
+            num += self.table.read(i, aggregate_column_index)
+        return(num)
 
     """
     incremenets one column of the record
