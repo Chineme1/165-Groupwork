@@ -34,7 +34,10 @@ class Query:
     def delete(self, primary_key):
         if not self.table.page_directory(primary_key):
             return False
-        page_range, page_number = self.table.page_directory(primary_key)
+
+        # write()
+        # change RID to -1
+        # page_range, page_number = self.table.page_directory(primary_key)
         return True
 
 
@@ -70,9 +73,9 @@ class Query:
     """
     # Read a record with specified RID and returns it
     # :param RID: the RID of the record we want to select
-    """
     def selectWithRID(self, RID):
         pass
+    """
 
 
 
@@ -86,6 +89,7 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select(self, index_value, index_column, query_columns):
+        # read()
         pass
 
 
@@ -97,7 +101,10 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
-        # remember to change the schema coding from 0 to 1
+        # select by ID
+        # append to tail pages
+        # indirection column link to base page or previous update
+        # change schema coding from 0 to 1
         pass
 
     """
