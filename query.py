@@ -14,24 +14,47 @@ class Query:
         self.table = table
         pass
 
+
+    """
+    # overloading [] operator 
+    
+    def __getitem__(self, key):
+        return self.table
+    """
+
+
     """
     # internal Method
     # Read a record with specified RID
     # Returns True upon succesful deletion
     # Return False if record doesn't exist or is locked due to 2PL
     """
-
     def delete(self, primary_key):
-        pass
+        if not self.table.page_directory(primary_key):
+            return False
+        page_range, page_number = self.table.page_directory(primary_key)
+        return True
+
+
     """
     # Insert a record with specified columns
     # Return True upon succesful insertion
     # Returns False if insert fails for whatever reason
     """
 
+
     def insert(self, *columns):
         schema_encoding = '0' * self.table.num_columns
         pass
+
+    """
+    # Read a record with specified RID and returns it
+    # :param RID: the RID of the record we want to select
+    """
+    def selectWithRID(self, RID):
+        pass
+
+
 
     """
     # Read a record with specified key
@@ -42,9 +65,11 @@ class Query:
     # Returns False if record locked by TPL
     # Assume that select will never be called on a key that doesn't exist
     """
-
     def select(self, index_value, index_column, query_columns):
         pass
+
+
+
     """
     # Update a record with specified key and columns
     # Returns True if update is succesful
@@ -52,6 +77,7 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
+        # remember to change the schema coding from 0 to 1
         pass
 
     """
