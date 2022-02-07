@@ -57,6 +57,11 @@ class PageRange:
             return False
         else:
             return True
+    def read(self,position,column):
+        page = position//8192
+        position2 = position%8192
+        return(self.hold[page].read(position2))
+    
 
 class BP:
     def __init__(self,columns):
@@ -74,7 +79,7 @@ class BP:
     #   if self.columns == columns
 
     def write(self,value, column):
-        page = (self.counter/512)*self.columns+column
+        page = (self.counter//512)*self.columns+column
         position = self.counter%512 #Not needed for now
         if position == 0:
             self.counter +=1
@@ -85,14 +90,14 @@ class BP:
             self.counter +=1
             self.hold[page].write(value)
     def write2(self, value, column, position):
-        page = (self.counter/512)*position+column
+        page = (self.counter//512)*position+column
         position2 = position%512
         self.hold[page].write2(value, position2)
         return (True)
             
 
     def read(self, position, column):
-        page = (position/512)*self.columns+column
+        page = (position//512)*self.columns+column
         position2 = position%512
         return(self.hold[page].read(position2))#Potentially wrong
 
