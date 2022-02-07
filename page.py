@@ -97,7 +97,7 @@ class BP:
             
 
     def read(self, position, column):
-        page = (position//512)*self.columns+column
+        page = ((position//512)-1)*self.columns+column
         position2 = position%512
         return(self.hold[page].read(position2))#Potentially wrong
 
