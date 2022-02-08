@@ -18,7 +18,7 @@ class Page:
             return True
     def read(self, position):
     #I don't need to error check
-        return self.num_records[position*8 : position*8 +7]
+        return self.data[position*8 : position*8 +7]
 
     def write(self, value):
         if self.has_capacity:
@@ -28,7 +28,7 @@ class Page:
         else:
             return False
     def write2(self, value, position):
-        self.num_records[position*8 : position*8+7] = value
+        self.data[position*8 : position*8+7] = value
         return(True)
 
     

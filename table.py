@@ -74,9 +74,9 @@ class PageRange:
         if tail_page_position == 0:
             self.num_tail_record += 1
             self.count_tail_pages += 1
-            x0 = self.creat_tail_page()
+            x0 = self.create_tail_page()
             self.tail_pages[tail_page] = x0
-            RID = x0.write(value,column)
+            RID = self.tail_pages[x0].write(value,column)
         else:
             self.num_tail_record += 1
             RID = self.tail_pages[tail_page].write(value,column)
@@ -109,16 +109,16 @@ class PageRange:
             tail_page_position = new_RID % 512
             while self.tail_pages[tail_page].read(tail_page_position,0) != 0 :
                 new_RID = self.tail_pages[tail_page].read(tail_page_position,0)
-                self.tail_pages[tail_page].write(None,1,tail_page_position)
+                self.tail_pages[tail_page].write2(None,1,tail_page_position)
                 tail_page = new_RID // 512
                 tail_page_position = new_RID % 512
-            self.tail_pages[tail_page].write(None,1,tail_page_position)    
+            self.tail_pages[tail_page].write2(None,1,tail_page_position)    
             return(True)
 
-    def creat_tail_page(self):
-        self.count_tail_pages += 1
+    def create_tail_page(self):
         tail_page_index = self.count_tail_pages
-        new_tail_page = BP()
+        self.count_tail_pages += 1
+        new_tail_page = BP(self.num_columns)
         self.tail_pages.append(new_tail_page)
         return tail_page_index
 
