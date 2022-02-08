@@ -17,13 +17,6 @@ class Query:
         pass
 
 
-    """
-    # overloading [] operator 
-    
-    def __getitem__(self, key):
-        return self.table
-    """
-
 
     """
     # internal Method
@@ -32,6 +25,8 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
+        if not self.table.page_directory(primary_key):
+            return False
         output = []
         RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         self.table.delete(RID)
@@ -75,12 +70,12 @@ class Query:
     """
     def select(self, index_value, index_column, query_columns):
         output = []
-        RID = self.table.index.indices[index_column].find(primary_key, self.table.index.indices[index_column].root, output)
+        RID = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
         numCols = len(query_columns)
         arr = []
         for i in range (0, numCols):
-            if query_columns[i] == 1:
-                arr.append(read(RID, i))
+            if query_columns[i] == 1:   # check which values in the query_columns are 1
+                arr.append(self.table.read(RID, i))  # read the data in the desired columns and append it to the list
         return(arr)
 
 
@@ -95,6 +90,7 @@ class Query:
         # append to tail pages
         # indirection column link to base page or previous update
         # change schema coding from 0 to 1
+
         pass
 
     """
