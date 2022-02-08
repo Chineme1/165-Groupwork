@@ -87,15 +87,25 @@ class Query:
     def update(self, primary_key, *columns):
         output = []
         RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        self.table.tailWrite(columns)
+        table.tailWrite(columns)
         numCols = len(columns)
+        Indirection = self.table.read(RID, 0)
+        rid = 0
+        ts = time.time()
+        schema_encoding = 0
+        self.table.tail_write(Indirection, 0, RID)
+        self.table.tail_write(rid, 1, RID)
+        self.table.tail_write(ts, 2, RID)
+        self.table.tail_write(schema_encoding, 3, RID)
         for i in range(0, numCols):
             if columns[i] == None:
                 val = self.table.read(RID, i)
-                self.table.tail_write(val, 4, RID)
+                self.table.tail_write(val, 3, RID)
             else:
-                self.table.tail_write(columns[i], i, RID)
-                self.table.write2(1, 4, RID)
+                self.table.tail_write(columns[i], i+4, RID)
+                self.table.write2(1, 3, RID)
+            
+        
 
 
         """       
