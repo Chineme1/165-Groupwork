@@ -1,4 +1,4 @@
-from lstore.table import Table, Record, PageRange
+from lstore.table import Table, Record
 from lstore.index import Index
 from lstore.page import Page
 import time # for timestamp
@@ -44,7 +44,7 @@ class Query:
 
     def insert(self, *columns):
         #Creating a metadata array before adding data
-        #Indirection -- ?? i forgot
+        indirection = None
         rid = self.table.num_records
         ts = time.time()
         schema_encoding = 0
@@ -86,10 +86,20 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
-        # select 
-        # append to tail pages
-        # indirection column link to base page or previous update
-        # change schema coding from 0 to 1
+        output = []
+        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        self.table.tailWrite(columns)
+        numCols = len(columns)
+        for i in range(0, numCols):
+            if columns[i] == None:
+                val = self.table.read(RID, i)
+                self.table.tail_write(val, 4, RID)
+            else:
+                self.table.tail_write(columns[i], i, RID)
+                self.table.write2(1, 4, RID)
+
+
+        """       
         if not self.table.page_directory(primary_key):
             return False
         output = []
@@ -106,6 +116,8 @@ class Query:
             lasted_update_RID = self.table.read(RID, 0)   # find the RID stored in the indirection column, which points to the lastest update in the tail page
             self.table.tail_write2(indirectionRID, 0, lasted_update_RID)  # change the RID of the previous update in the indirection column of the latest update
         return True
+        """
+
 
 
     """
@@ -118,6 +130,7 @@ class Query:
     """
 
     def sum(self, start_range, end_range, aggregate_column_index):
+        def sum(self, start_range, end_range, aggregate_column_index):
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
         num = 0
