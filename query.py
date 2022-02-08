@@ -55,7 +55,6 @@ class Query:
         for i in range (0, numCol):
             self.table.write(data[i], i)
         return(True)
-            
 
 
 
