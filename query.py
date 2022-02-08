@@ -25,17 +25,12 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
+        if not self.table.page_directory(primary_key):
+            return False
         output = []
         RID = self.table.index.indices[0].findRange(primary_key, self.table.index.indices[0].root, output)
         self.table.delete(RID)
         return(True)
-            
-        
-        
-        # write()
-        # change RID to None
-        # page_range, page_number = self.table.page_directory(primary_key)
-        return True
 
 
     """
@@ -87,6 +82,9 @@ class Query:
         # append to tail pages
         # indirection column link to base page or previous update
         # change schema encoding from 0 to 1
+        output = []
+        RID = self.table.index.indices[0].findRange(primary_key, self.table.index.indices[0].root, output)
+
         pass
 
     """
