@@ -17,13 +17,6 @@ class Query:
         pass
 
 
-    """
-    # overloading [] operator 
-    
-    def __getitem__(self, key):
-        return self.table
-    """
-
 
     """
     # internal Method
@@ -70,14 +63,6 @@ class Query:
         pass
 
 
-    """
-    # Read a record with specified RID and returns it
-    # :param RID: the RID of the record we want to select
-    def selectWithRID(self, RID):
-        pass
-    """
-
-
 
     """
     # Read a record with specified key
@@ -101,7 +86,7 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
-        # select by ID
+        # select by primary_key
         # append to tail pages
         # indirection column link to base page or previous update
         # change schema coding from 0 to 1
