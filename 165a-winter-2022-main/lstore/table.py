@@ -166,7 +166,7 @@ class Table:
         return position_page_range, position_base_page
 
     def read(self,RID,column):
-        position_page_range, position_base_page = self.page_directory(RID[0])
+        position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)
     
     def write(self,value,column):
