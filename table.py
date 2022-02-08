@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from msilib.schema import tables
 from lstore.index import Index
 from lstore.page import BP
@@ -75,6 +76,32 @@ class PageRange:
             self.num_tail_record += 1
             self.tail_pages[tail_page].write(value,column)
 
+    def write2(self,value,column,position):
+        tail_page = (self.count_tail_pages//512) * position + column
+        position2 = position%512
+        self.tail_pages[tail_page].write2(value,position2)
+        return(True)
+
+    def delete(self,position):
+        base_page = position // 512
+        base_page_position = position % 512
+        for i in self.base_pages[base_page].read(base_page_position,3):
+            if i == 1:
+                new_RID = self.base_pages[base_page].read(base_page_position,0)
+                break
+            else:
+                self.base_pages[base_page].write2(NULL,1,base_page_position)
+                return (True)
+         
+        
+        
+        
+
+
+
+            
+
+
     def creat_tail_page(self):
         self.count_tail_pages += 1
         tail_page_index = self.count_tail_pages
@@ -101,7 +128,7 @@ class Table:
         self.name = name
         self.num_columns = num_columns
         self.key = key
-        self.page_directory = {} #total data in page range
+        self.page_directory = {} #taotal data in page range
         self.page_ranges_num = 0
         self.num_base_record = 0 
         self.num_tail_record = 0
@@ -123,14 +150,14 @@ class Table:
 
     def page_directory(RID):
 
-        num_page_range = RID//8192              #index of page range
-        num_base_page = (RID%8192)//512         #index of base page
+        position_page_range = RID//8192              #index of page range
+        position_base_page = (RID%8192)//512         #index of base page
         
-        return num_page_range, num_base_page
+        return position_page_range, position_base_page
 
     def read(self,RID,column):
-        num_page_range, num_base_page = self.page_directory(RID)
-        return self.page_ranges[num_page_range].read(num_base_page,column)
+        position_page_range, position_base_page = self.page_directory(RID)
+        return self.page_ranges[position_page_range].read(position_base_page,column)
     
     def write(self,value,column):
         page_range = self.num_base_record // 8192
@@ -145,8 +172,13 @@ class Table:
             self.num_base_record += 1
             self.page_ranges[page_range].write(value,column)
 
+    def delete(self,RID):
+        position_page_range, position_base_page = self.page_directory(RID)
+        self.page_ranges[position_page_range].delete(position_base_page)
+        return(True)
         
-
     def __merge(self):
         print("merge is happening")
         pass
+ 
+
