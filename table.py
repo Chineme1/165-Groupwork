@@ -7,7 +7,7 @@ from time import time
 INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
 TIMESTAMP_COLUMN = 2
-SCHEMA_ENCODING_COLUMN = 3
+SCHEMA_ENCODING_COLUMN = 3 # Really useful
 KEY_COLUMN = 4
 
 
@@ -63,7 +63,7 @@ class PageRange:
         true_false, encoding = self.tail_pages[tail_page].read(tail_page_location,column)
         return encoding
 
-    def tail_write(self,value,column)
+    def tail_write(self,value,column, position)
         tail_page = self.num_tail_record // 512
         tail_page_position = self.num_tail_record % 512
         if tail_page_position == 0:
@@ -71,10 +71,12 @@ class PageRange:
             self.count_tail_pages += 1
             x0 = self.creat_tail_page()
             self.tail_pages[tail_page] = x0
-            x0.write(value,column)
+            RID = x0.write(value,column)
         else:
             self.num_tail_record += 1
-            self.tail_pages[tail_page].write(value,column)
+            RID = self.tail_pages[tail_page].write(value,column)
+        write2(RID, 1, position)
+        return(True)
 
     def write2(self,value,column,position):
         tail_page = (self.count_tail_pages//512) * position + column
@@ -95,7 +97,7 @@ class PageRange:
         
         # set rid of tail pages to null
 
-            
+    
 
 
     def creat_tail_page(self):
@@ -144,6 +146,11 @@ class Table:
         self.page_ranges.append(new_page_range)        
         return pr_index
 
+    def tail_write(self,value,column, RID):
+        x1, x2 = page_directory(RID)
+        self.page_ranges[x1].tail_write(value, column, x2)
+        return(True)
+    
     def page_directory(RID):
 
         position_page_range = RID//8192              #index of page range
