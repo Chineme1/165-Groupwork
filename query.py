@@ -1,4 +1,4 @@
-from lstore.table import Table, Record
+from lstore.table import Table, Record, PageRange
 from lstore.index import Index
 from lstore.page import Page
 import time # for timestamp
@@ -90,8 +90,23 @@ class Query:
         # append to tail pages
         # indirection column link to base page or previous update
         # change schema coding from 0 to 1
+        if not self.table.page_directory(primary_key):
+            return False
+        output = []
+        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output) #find RID of the record we want to update
+        indirectionRID = self.table.read(RID, 0)   # find the value in the indirection column of the record
+        for i in range(columns):
+            if columns(i):
+                self.table.tail_write(columns(i), i+4, RID)   # write the given updated value to the tail page (tail_write edits the indirection column)
+            if not columns(i):
+                unupdated_value = self.table.read(RID, i+4)  # get the data that stays the same
+                self.table.tail_write(unupdated_value, i+4, RID)  # write the unupdated value to the tail page
 
-        pass
+        if indirectionRID:  # check if it's the first update
+            lasted_update_RID = self.table.read(RID, 0)   # find the RID stored in the indirection column, which points to the lastest update in the tail page
+            self.table.tail_write2(indirectionRID, 0, lasted_update_RID)  # change the RID of the previous update in the indirection column of the latest update
+        return True
+
 
     """
     :param start_range: int         # Start of the key range to aggregate 
@@ -103,7 +118,6 @@ class Query:
     """
 
     def sum(self, start_range, end_range, aggregate_column_index):
-        def sum(self, start_range, end_range, aggregate_column_index):
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
         num = 0
