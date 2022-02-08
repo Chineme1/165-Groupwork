@@ -89,6 +89,7 @@ class BP:
         else:
             self.counter +=1
             self.hold[page].write(value)
+        return(self.counter)
     def write2(self, value, column, position):
         page = (self.counter//512)*position+column
         position2 = position%512
