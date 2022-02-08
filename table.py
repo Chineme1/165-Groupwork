@@ -92,12 +92,8 @@ class PageRange:
             else:
                 self.base_pages[base_page].write2(NULL,1,base_page_position)
                 return (True)
-         
         
-        
-        
-
-
+        # set rid of tail pages to null
 
             
 
@@ -171,6 +167,13 @@ class Table:
         else:
             self.num_base_record += 1
             self.page_ranges[page_range].write(value,column)
+
+    def write2(self,value,column,position):
+        page_range = (self.num_tail_record//8192) * position + column
+        position2 = self.num_tail_record % 8192
+        self.page_ranges[page_range].write2(value,column,position2)
+        return(True)
+
 
     def delete(self,RID):
         position_page_range, position_base_page = self.page_directory(RID)
