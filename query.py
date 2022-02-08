@@ -54,24 +54,17 @@ class Query:
     def insert(self, *columns):
         #Creating a metadata array before adding data
         #Indirection -- ?? i forgot
-        rid = self.tables.num_records
+        rid = self.table.num_records
         ts = time.time()
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
         #adds record, with the first element being the key
         data = meta.append(columns)
-
-
-
-        #check if theres enough space in page/page range
-        #then write to base page
-        for i, value in enumerate(data):
-            page =  #find the page -- how are we finding the page. will return page range and position
-            #check if full using the page's has_capacity function
-            #check if page range is full
-            page.write(value)
-            self.tables.num_records += 1
-        pass
+        numCol = len(data)
+        for i in range (0, numCol):
+            self.table.write(data[i], i)
+        return(True)
+            
 
 
     """
