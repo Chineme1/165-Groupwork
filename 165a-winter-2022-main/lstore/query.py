@@ -89,6 +89,7 @@ class Query:
         output = []
         RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         numCols = len(columns)
+        print(RID)
         Indirection = self.table.read(RID, 0)
         rid = 0
         ts = time.time()
