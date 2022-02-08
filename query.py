@@ -44,16 +44,17 @@ class Query:
 
     def insert(self, *columns):
         #Creating a metadata array before adding data
+        self.table.num_table_record += 1
         indirection = None
-        rid = self.table.num_records
+        rid = self.table.num_table_record
         ts = time.time()
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
         #adds record, with the first element being the key
-        data = meta.append(columns)
-        numCol = len(data)
-        for i in range (0, numCol):
-            self.table.write(data[i], i)
+
+        numCol = self.table.num_columns + 4
+        for i in range (4, numCol):
+            self.table.write(columns[i-4], i)
         return(True)
 
 
@@ -87,7 +88,6 @@ class Query:
     def update(self, primary_key, *columns):
         output = []
         RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        table.tailWrite(columns)
         numCols = len(columns)
         Indirection = self.table.read(RID, 0)
         rid = 0
@@ -139,7 +139,6 @@ class Query:
     """
 
     def sum(self, start_range, end_range, aggregate_column_index):
-        def sum(self, start_range, end_range, aggregate_column_index):
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
         num = 0

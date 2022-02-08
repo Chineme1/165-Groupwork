@@ -27,7 +27,7 @@ class PageRange:
     """
 
     def __init__(self,num_columns,pr_key,key):
-        self.num_colums = num_columns
+        self.num_columns = num_columns
         self.base_pages = [None]* 16
         self.tail_pages = [None]
         self.count_base_pages = 0
@@ -48,7 +48,7 @@ class PageRange:
         if base_page_position == 0:
             self.num_base_record += 1
             self.count_base_pages += 1
-            x0 = BP()
+            x0 = BP(self.num_columns)
             self.base_pages[base_page] = x0
             x0.write(value,column)
         else:
@@ -141,10 +141,10 @@ class Table:
         self.name = name
         self.num_columns = num_columns
         self.key = key
-        self.page_directory = {} #taotal data in page range
         self.page_ranges_num = 0
         self.num_base_record = 0 
         self.num_tail_record = 0
+        self.num_table_record = 0
         self.page_ranges = []
         self.index = Index(self)
         pass
@@ -166,7 +166,7 @@ class Table:
         return position_page_range, position_base_page
 
     def read(self,RID,column):
-        position_page_range, position_base_page = self.page_directory(RID)
+        position_page_range, position_base_page = self.page_directory(RID[0])
         return self.page_ranges[position_page_range].read(position_base_page,column)
     
     def write(self,value,column):
@@ -175,8 +175,8 @@ class Table:
         if page_range_position == 0:
             self.num_base_record += 1
             self.page_ranges_num += 1
-            x0 = PageRange()
-            self.page_ranges[page_range] = x0
+            x0 = PageRange(self.num_columns, self.page_ranges_num, 0)
+            self.page_ranges.append(x0)
             x0.write(value,column)
         else:
             self.num_base_record += 1
