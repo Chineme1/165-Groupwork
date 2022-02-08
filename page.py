@@ -96,12 +96,14 @@ class BP:
         return (True)
             
 
-    def read(self, position, column):
+        def read(self, position, column):
         page = ((position//512)-1)*self.columns+column
-        schemaPage = ((position//512)-1)*self.columns+page
+        schemaPage = ((position//512)-1)*self.columns+4
+        indirectionPage = ((position//512)-1)*self.columns+1
         position2 = position%512
-        if self.hold[schemaPage].read(position2)[column] == 1:
-            return(False)
-        return(self.hold[page].read(position2))#Potentially wrong
+        if self.hold[schemaPage].read(position2)[column] == 1: #change column access
+            encoding = self.hold[indirectionPage].read(position2)
+            return(False, encoding)
+        return(True, self.hold[page].read(position2))#Potentially wrong
 
 
