@@ -29,7 +29,7 @@ class Query:
             return False
 
         # write()
-        # change RID to -1
+        # change RID to None
         # page_range, page_number = self.table.page_directory(primary_key)
         return True
 
@@ -89,7 +89,7 @@ class Query:
         # select by primary_key
         # append to tail pages
         # indirection column link to base page or previous update
-        # change schema coding from 0 to 1
+        # change schema encoding from 0 to 1
         pass
 
     """
