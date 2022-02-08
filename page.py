@@ -18,17 +18,21 @@ class Page:
             return True
     def read(self, position):
     #I don't need to error check
-        return self.data[position*8 : position*8 +7]
+        arr =  self.data[position*8 : position*8 +7]
+        num = 0
+        num.from_bytes(arr, 'big')
+        return(num)
 
     def write(self, value):
-        if self.has_capacity:
+        if self.has_capacity():
             arr = value.to_bytes(8, 'big')
             self.data.extend(arr)
             self.num_records += 1
         else:
             return False
     def write2(self, value, position):
-        self.data[position*8 : position*8+7] = value
+        arr = value.to_bytes(8, 'big')
+        self.data[position*8 : position*8+7] = arr
         return(True)
 
     
@@ -72,7 +76,9 @@ class BP:
         schemaPage = ((position//512)-1)*self.columns+4
         indirectionPage = ((position//512)-1)*self.columns+1
         position2 = position%512
-        if self.hold[schemaPage].read(position2)[column] == 1: #change column access
+        bit = self.hold[schemaPage].read(position2)%pow(2, 7-column)
+        bit = bit//pow(2, 8-column) 
+        if bit == 1: 
             encoding = self.hold[indirectionPage].read(position2)
             return(False, encoding)
         return(True, self.hold[page].read(position2))#Potentially wrong

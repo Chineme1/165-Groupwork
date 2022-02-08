@@ -29,7 +29,7 @@ class PageRange:
     def __init__(self,num_columns,pr_key,key):
         self.num_columns = num_columns
         self.base_pages = [None]* 16
-        self.tail_pages = [None]
+        self.tail_pages = []
         self.count_base_pages = 0
         self.count_tail_pages = 0 
         self.num_base_record = 0
@@ -57,9 +57,9 @@ class PageRange:
         return(True)
 
     def write2(self,value,column,position):
-        base_page = (self.num_base_record//512) * position + column
+        base_page = (position//512)
         position2 = position%512
-        self.tail_pages[base_page].write2(value,position2)
+        self.base_pages[base_page].write2(value, column, position2)
         return(True)
     
     def tail_read(self,position,column):
@@ -73,9 +73,8 @@ class PageRange:
         tail_page_position = self.num_tail_record % 512
         if tail_page_position == 0:
             self.num_tail_record += 1
-            self.count_tail_pages += 1
             x0 = self.create_tail_page()
-            self.tail_pages[tail_page] = x0
+            #self.tail_pages[tail_page] = x0
             RID = self.tail_pages[x0].write(value,column)
         else:
             self.num_tail_record += 1
@@ -167,7 +166,7 @@ class Table:
 
     def read(self,RID,column):
         position_page_range, position_base_page = self.page_directory(RID)
-        return self.page_ranges[position_page_range].read(position_base_page,column)
+        return self.page_ranges[position_page_range].read(position_base_page,column)[1]
     
     def write(self,value,column):
         page_range = self.num_base_record // 8192
@@ -184,8 +183,8 @@ class Table:
         return (True)
 
     def write2(self,value,column,position):
-        page_range = (self.num_base_record//8192) * position + column
-        position2 = self.num_base_record % 8192
+        page_range = (position//8192)
+        position2 = position % 8192
         self.page_ranges[page_range].write2(value,column,position2)
         return(True)
 

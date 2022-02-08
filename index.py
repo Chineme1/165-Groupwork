@@ -2,7 +2,7 @@
 A data strucutre holding indices for various columns of a table. Key column should be indexd by default, other columns can be indexed through this object. Indices are usually B-Trees, but other data structures can be used as well.
 """
 # may need to change to allow insertions of equal keys. seems like it kinda works?
-from random import randrange
+from random import choice, randrange
 from time import process_time
 
 class Index:
@@ -238,14 +238,20 @@ tree = BTree()
 # insert_time_1 = process_time()
 
 # print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
-
+# list = []
 # for i in range (1, 10000):
-    # tree.insert(i, i, tree.root)
+    # tree.insert(i+906659671, i, tree.root)
+    # list.append(i+906659671)
+# for i in range (1, 10000):
     # output = []
-    # tree.find(i, tree.root, output)
+    # num = choice(list)
+    # tree.find(num, tree.root, output)
     # if output[0] != i:
-        # print("something went wrong")
-# print(tree.root.entries[0].key)
-# print(tree.root.leftChild.entries[0].key)
-# print(tree.root.rightChild.entries[0].key)
+        # #print("something went wrong")
+        # x = 0
 
+# 906669654
+# 906669654
+# 906669398
+# 906669398
+# 906667862
