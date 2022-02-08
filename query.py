@@ -17,6 +17,13 @@ class Query:
         pass
 
 
+    """
+    # overloading [] operator 
+    
+    def __getitem__(self, key):
+        return self.table
+    """
+
 
     """
     # internal Method
@@ -25,12 +32,13 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
-        if not self.table.page_directory(primary_key):
-            return False
         output = []
-        RID = self.table.index.indices[0].findRange(primary_key, self.table.index.indices[0].root, output)
+        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         self.table.delete(RID)
         return(True)
+            
+        
+        
 
 
     """
@@ -66,9 +74,14 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select(self, index_value, index_column, query_columns):
-        # read()
-        pass
-
+        output = []
+        RID = self.table.index.indices[index_column].find(primary_key, self.table.index.indices[index_column].root, output)
+        numCols = len(query_columns)
+        arr = []
+        for i in range (0, numCols):
+            if query_columns[i] == 1:
+                arr.append(read(RID, i))
+        return(arr)
 
 
     """
@@ -78,13 +91,10 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
-        # select by primary_key
+        # select 
         # append to tail pages
         # indirection column link to base page or previous update
-        # change schema encoding from 0 to 1
-        output = []
-        RID = self.table.index.indices[0].findRange(primary_key, self.table.index.indices[0].root, output)
-
+        # change schema coding from 0 to 1
         pass
 
     """
