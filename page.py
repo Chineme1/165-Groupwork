@@ -98,7 +98,10 @@ class BP:
 
     def read(self, position, column):
         page = ((position//512)-1)*self.columns+column
+        schemaPage = ((position//512)-1)*self.columns+page
         position2 = position%512
+        if self.hold[schemaPage].read(position2)[column] == 1:
+            return(False)
         return(self.hold[page].read(position2))#Potentially wrong
 
 
