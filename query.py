@@ -51,7 +51,7 @@ class Query:
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
         #adds record, with the first element being the key
-
+        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
         numCol = self.table.num_columns + 4
         for i in range (4, numCol):
             self.table.write(columns[i-4], i)
@@ -87,7 +87,8 @@ class Query:
 
     def update(self, primary_key, *columns):
         output = []
-        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        RID = out[0]
         numCols = len(columns)
         Indirection = self.table.read(RID, 0)
         rid = 0

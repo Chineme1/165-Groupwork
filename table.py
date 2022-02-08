@@ -160,13 +160,13 @@ class Table:
         self.page_ranges.append(new_page_range)        
         return pr_index
 
-    def page_directory(RID):
+    def page_directory(self, RID):
         position_page_range = RID//8192              #index of page range
         position_base_page = (RID%8192)//512         #index of base page
         return position_page_range, position_base_page
 
     def read(self,RID,column):
-        position_page_range, position_base_page = self.page_directory(RID[0])
+        position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)
     
     def write(self,value,column):
