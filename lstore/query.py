@@ -78,7 +78,10 @@ class Query:
     def select(self, index_value, index_column, query_columns):
         output = []
         out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
-        RID = output[0]
+        try:
+            RID = output[0]
+        except:
+            return(False)
         numCols = len(query_columns)
         arr = []
         for i in range (0, numCols):
