@@ -28,7 +28,8 @@ class Query:
         if not self.table.page_directory(primary_key):
             return False
         output = []
-        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        RID = output[0]
         self.table.delete(RID)
         return(True)
             
@@ -70,7 +71,8 @@ class Query:
     """
     def select(self, index_value, index_column, query_columns):
         output = []
-        RID = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
+        out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
+        RID = output[0]
         numCols = len(query_columns)
         arr = []
         for i in range (0, numCols):

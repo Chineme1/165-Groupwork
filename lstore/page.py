@@ -26,11 +26,18 @@ class Page:
     def write(self, value):
         if self.has_capacity():
             arr = value.to_bytes(8, 'big')
-            self.data.extend(arr)
+            self.data.extend(arr) # change due to verying size
             self.num_records += 1
         else:
             return False
     def write2(self, value, position):
+        if value == None:
+            count = 0
+            while count < 8:
+                self.data[position*8+count] = 0
+                count += 1
+             #self.data[position*8 : position*8+7] = 0 #come back to for changing RID to 0/NULL
+            return(True)
         arr = value.to_bytes(8, 'big')
         self.data[position*8 : position*8+7] = arr
         return(True)
