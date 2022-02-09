@@ -46,21 +46,22 @@ class Query:
 
     def insert(self, *columns):
         #Creating a metadata array before adding data
-        try:
-            self.table.num_table_record += 1
-            indirection = None
-            rid = self.table.num_table_record
-            ts = time.time()
-            schema_encoding = 0
-            meta = [indirection, rid, ts, schema_encoding]
-            # adds record, with the first element being the key
-            self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-            numCol = self.table.num_columns + 4
-            for i in range(4, numCol):
-                self.table.write(columns[i - 4], i)
-            return (True)
-        except:
-            return False
+        self.table.num_table_record += 1
+        indirection = None
+        rid = self.table.num_table_record+1 #as rid = 0 is reserved
+        ts = int(time.time())
+        schema_encoding = 0
+        meta = [indirection, rid, ts, schema_encoding]
+        # adds record, with the first element being the key
+        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
+        numCol = self.table.num_columns + 4
+        self.table.write(indirection, 0)
+        self.table.write(rid, 1)
+        self.table.write(ts, 2)
+        self.table.write(schema_encoding, 3)
+        for i in range(4, numCol):
+            self.table.write(columns[i - 4], i)
+        return (True)
 
 
 
@@ -157,3 +158,5 @@ class Query:
             u = self.update(key, *updated_columns)
             return u
         return False
+
+

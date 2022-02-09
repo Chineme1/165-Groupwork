@@ -83,11 +83,20 @@ class BTree:
             return(BTreeNode(temp, True))
         if node.leftChild != None or node.rightChild != None or node.middleChild != None:
             if key < node.entries[0].key:
-                self.insert(key, RID, node.leftChild)
+                temp = self.insert(key, RID, node.leftChild)
+                if node.leftChild == None:
+                    node.leftChild = temp 
+                    node.leftChild.parent = node
             elif len(node.entries) == 1 or key > node.entries[1].key:
-                self.insert(key, RID, node.rightChild)
+                temp = self.insert(key, RID, node.rightChild)
+                if node.rightChild == None:
+                    node.rightChild = temp
+                    node.rightChild.parent = node
             else:
-                self.insert(key, RID, node.middleChild)
+                temp = self.insert(key, RID, node.middleChild)
+                if node.middleChild == None:
+                    node.middleChild = temp
+                    node.middleChild.parent = node
             return(node)
         if len(node.entries) < 2:
             node.entries.append(temp)
@@ -242,10 +251,17 @@ tree = BTree()
 
 #print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
 # list = []
-# for i in range (1, 10000):
+# for i in range (1, 10):
     # tree.insert(i+906659671, i, tree.root)
+    # output = []
+    # tree.find(i+906659671, tree.root, output)
+    # print(i)
     # list.append(i+906659671)
-# for i in range (1, 10000):
+# print(tree.root.entries[0].RID)
+# print(tree.root.leftChild.entries[0].RID)
+# print(tree.root.rightChild.entries[0].RID)
+# for i in range (1, 10):
+    # print(i)
     # output = []
     # #num = choice(list)
     # num = i+906659671

@@ -25,9 +25,16 @@ class Page:
 
     def write(self, value):
         if self.has_capacity():
+            if value == None:
+                count = 0
+                zero = 0
+                arr = zero.to_bytes(8, 'big')
+                self.data.extend(arr)
+                return(True)
             arr = value.to_bytes(8, 'big')
             self.data.extend(arr) # change due to verying size
             self.num_records += 1
+            return(True)
         else:
             return False
     def write2(self, value, position):
@@ -53,7 +60,7 @@ class BP:
         for i in range(0, self.columns+4):
             x0 = Page()
             self.hold.append(x0)
-    
+        
     
         #def I_PP(self):
         # if self.has_capacity:
@@ -66,13 +73,13 @@ class BP:
     def write(self,value, column):
         page = column
         position = self.counter%512 #Not needed for now
-        if self.updates == self.columns:
+        if self.updates%self.columns == 0:
             self.counter += 1
         self.updates +=1
         self.hold[page].write(value)
         return(self.counter)
     def write2(self, value, column, position):
-        page = (self.counter//512)*position+column
+        page = column
         position2 = position%512
         self.hold[page].write2(value, position2)
         return (True)
