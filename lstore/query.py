@@ -25,11 +25,12 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
-        if not self.table.page_directory(primary_key):
-            return False
         output = []
         out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        RID = output[0]
+        try:
+            RID = output[0]
+        except:
+            return False
         self.table.delete(RID)
         return(True)
             
@@ -45,18 +46,22 @@ class Query:
 
     def insert(self, *columns):
         #Creating a metadata array before adding data
-        self.table.num_table_record += 1
-        indirection = None
-        rid = self.table.num_table_record
-        ts = time.time()
-        schema_encoding = 0
-        meta = [indirection, rid, ts, schema_encoding]
-        #adds record, with the first element being the key
-        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-        numCol = self.table.num_columns + 4
-        for i in range (4, numCol):
-            self.table.write(columns[i-4], i)
-        return(True)
+        try:
+            self.table.num_table_record += 1
+            indirection = None
+            rid = self.table.num_table_record
+            ts = time.time()
+            schema_encoding = 0
+            meta = [indirection, rid, ts, schema_encoding]
+            # adds record, with the first element being the key
+            self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
+            numCol = self.table.num_columns + 4
+            for i in range(4, numCol):
+                self.table.write(columns[i - 4], i)
+            return (True)
+        except:
+            return False
+
 
 
 
@@ -90,7 +95,10 @@ class Query:
     def update(self, primary_key, *columns):
         output = []
         out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        RID = output[0]
+        try:
+            RID = output[0]
+        except:
+            return False
         numCols = len(columns)
         Indirection = self.table.read(RID, 0)
         rid = 0
@@ -145,9 +153,12 @@ class Query:
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
         num = 0
-        for i in output:
-            num += self.table.read(i, aggregate_column_index)
-        return(num)
+        try:
+            for i in output:
+                num += self.table.read(i, aggregate_column_index)
+            return (num)
+        except:
+            return False
 
     """
     incremenets one column of the record
