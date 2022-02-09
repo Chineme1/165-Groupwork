@@ -34,66 +34,83 @@ class PageRange:
         self.count_tail_pages = 0 
         self.num_base_record = 0
         self.num_tail_record = 0
+        self.base_updates = 0 # make sure we are not increasing num_base_record each time we update a column
+        self.tail_update = 0  # same as above but for tail record
         self.pr_key = pr_key
         self.key = key
     
+
+    # read the column of position in base page
     def read(self,position,column):
         base_page = position // 512                 #index of base page
         base_page_position = position % 512         #position inside base page we are reading
         return(self.base_pages[base_page].read(base_page_position,column))
 
+    # write value to column of the last base page
     def write(self,value,column):
         base_page = self.num_base_record // 512
         base_page_position = self.num_base_record % 512
         if base_page_position == 0:
-            self.num_base_record += 1
+            if self.base_update == self.num_columns:
+                self.num_base_record += 1
+            self.base_update += 1
             self.count_base_pages += 1
             x0 = BP(self.num_columns)
             self.base_pages[base_page] = x0
             x0.write(value,column)
         else:
-            self.num_base_record += 1
+            if self.base_update == self.num_columns:
+                self.num_base_record += 1
+            self.base_update += 1
             self.base_pages[base_page].write(value,column)
         return(True)
 
+    #Update the value of column in position of the base page
     def write2(self,value,column,position):
         base_page = (position//512)
         position2 = position%512
         self.base_pages[base_page].write2(value, column, position2)
         return(True)
     
+    #Read tail page of column of base page in position, return value of this column in tail page
     def tail_read(self,position,column):
         tail_page = position // 512
         tail_page_location = position % 512
-        true_false, encoding = self.tail_pages[tail_page].read(tail_page_location,column)
-        return encoding
-
+        true_false, value = self.tail_pages[tail_page].read(tail_page_location,column)
+        return value
+    
+    #Write value of column of base page in position, return the rid of created tail page 
     def tail_write(self,value,column,position):
         tail_page = self.num_tail_record // 512
         tail_page_position = self.num_tail_record % 512
         if tail_page_position == 0:
-            self.num_tail_record += 1
+            if self.tail_update == self.num_columns + 4:
+                self.num_tail_record += 1
+            self.tail_update += 1
             x0 = self.create_tail_page()
             #self.tail_pages[tail_page] = x0
             RID = self.tail_pages[x0].write(value,column)
         else:
-            self.num_tail_record += 1
+            if self.tail_update == self.num_columns + 4:
+                self.num_tail_record += 1
+            self.tail_update += 1
             RID = self.tail_pages[tail_page].write(value,column)
-        self.write2(RID, 1, position)
-        return(True)
+        self.write2(RID, 0, position)
+        return(RID)
 
+    #Update the value of column of the tailpage with position(position in tail page)
     def tail_write2(self,value,column,position):
         tail_page = (self.num_tail_record//512) * position + column
         position2 = position%512
         self.tail_pages[tail_page].write2(value,position2)
         return(True)
 
+    #delete a base record, if indirection column is not zero then delete the following tail pages
     def delete(self,position):
         base_page = position // 512
         base_page_position = position % 512
         for i in self.base_pages[base_page].read(base_page_position,3):
             check = 0
-            print("hi")
             if i == 1:
                 new_RID = self.base_pages[base_page].read(base_page_position,0)[1]
                 check += 1
@@ -107,7 +124,7 @@ class PageRange:
         else:
             tail_page = new_RID // 512
             tail_page_position = new_RID % 512
-            while self.tail_pages[tail_page].read(tail_page_position,0) != 0 :
+            while self.tail_pages[tail_page].read(tail_page_position,0)[1] != 0 :
                 new_RID = self.tail_pages[tail_page].read(tail_page_position,0)[1]
                 self.tail_pages[tail_page].write2(None,1,tail_page_position)
                 tail_page = new_RID // 512
@@ -145,6 +162,8 @@ class Table:
         self.num_base_record = 0 
         self.num_tail_record = 0
         self.num_table_record = 0
+        self.base_update = 0 # make sure we are not increasing num_base_record each time we update a column
+        self.tail_update = 0 # same as above
         self.page_ranges = []
         self.index = Index(self)
         pass
@@ -165,21 +184,28 @@ class Table:
         position_base_page = (RID%8192)//512         #index of base page
         return position_page_range, position_base_page
 
+    
+    # read the column in rid in base page
     def read(self,RID,column):
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)[1]
     
+     # write value to column of the last base page
     def write(self,value,column):
         page_range = self.num_base_record // 8192
         page_range_position = self.num_base_record % 8192
         if page_range_position == 0:
-            self.num_base_record += 1
             self.page_ranges_num += 1
+            if self.base_update == self.num_columns + 4:
+                self.num_base_record += 1
+            self.base_update += 1
             x0 = PageRange(self.num_columns, self.page_ranges_num, 0)
             self.page_ranges.append(x0)
             x0.write(value,column)
         else:
-            self.num_base_record += 1
+            if self.base_update == self.num_columns + 4:
+                self.num_base_record += 1
+            self.base_update += 1
             self.page_ranges[page_range].write(value,column)
         return (True)
 
@@ -196,7 +222,9 @@ class Table:
 
     def tail_write(self,value,column,RID):
         page_range, page_range_position = self.page_directory(RID)
-        self.num_tail_record += 1
+        if self.tail_update == self.num_columns + 4:
+                self.num_tail_record += 1
+        self.tail_update += 1
         self.page_ranges[page_range].tail_write(value,column,page_range_position)
         return(True)
 
