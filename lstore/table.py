@@ -93,7 +93,6 @@ class PageRange:
         base_page_position = position % 512
         for i in self.base_pages[base_page].read(base_page_position,3):
             check = 0
-            print("hi")
             if i == 1:
                 new_RID = self.base_pages[base_page].read(base_page_position,0)[1]
                 check += 1
@@ -107,7 +106,7 @@ class PageRange:
         else:
             tail_page = new_RID // 512
             tail_page_position = new_RID % 512
-            while self.tail_pages[tail_page].read(tail_page_position,0) != 0 :
+            while self.tail_pages[tail_page].read(tail_page_position,0)[1] != 0 :
                 new_RID = self.tail_pages[tail_page].read(tail_page_position,0)[1]
                 self.tail_pages[tail_page].write2(None,1,tail_page_position)
                 tail_page = new_RID // 512
