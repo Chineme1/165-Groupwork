@@ -82,7 +82,7 @@ class Query:
         arr = []
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr.append(self.table.read(RID, i))  # read the data in the desired columns and append it to the list
+                arr.append(self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
         return(arr)
 
 
@@ -96,47 +96,27 @@ class Query:
         output = []
         out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         try:
-            RID = output[0]
+            RID = output[0]  # find the RID of the record we want to update
         except:
             return False
         numCols = len(columns)
-        Indirection = self.table.read(RID, 0)
-        rid = 0
+        Indirection = self.table.read(RID, 0)     # find the value in the indirectionn column of given record
         ts = int(time.time())
         schema_encoding = 0
-        self.table.tail_write(Indirection, 0, RID)
-        self.table.tail_write(rid, 1, RID)
+        update_RID = self.table.tail_write(Indirection, 0, RID)  # store the RID of the previous update in the indirection column of the latest update
+        # tail_write returns the RID of the latest update
+        self.table.tail_write(update_RID, 1, RID)
         self.table.tail_write(ts, 2, RID)
         self.table.tail_write(schema_encoding, 3, RID)
         for i in range(0, numCols):
-            if columns[i] == None:
-                val = self.table.read(RID, i)
-                self.table.tail_write(val, 3, RID)
+            if columns[i] == None:   # if the value of columns[i] is not updated
+                unupdated_val = self.table.read(RID, i+4)   # read the value from the record in the base page
+                self.table.tail_write(unupdated_val, i+4, RID)
             else:
                 self.table.tail_write(columns[i], i+4, RID)
                 self.table.write2(1, 3, RID)
-            
-        
-
-
-        """       
-        if not self.table.page_directory(primary_key):
-            return False
-        output = []
-        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output) #find RID of the record we want to update
-        indirectionRID = self.table.read(RID, 0)   # find the value in the indirection column of the record
-        for i in range(columns):
-            if columns(i):
-                self.table.tail_write(columns(i), i+4, RID)   # write the given updated value to the tail page (tail_write edits the indirection column)
-            if not columns(i):
-                unupdated_value = self.table.read(RID, i+4)  # get the data that stays the same
-                self.table.tail_write(unupdated_value, i+4, RID)  # write the unupdated value to the tail page
-
-        if indirectionRID:  # check if it's the first update
-            lasted_update_RID = self.table.read(RID, 0)   # find the RID stored in the indirection column, which points to the lastest update in the tail page
-            self.table.tail_write2(indirectionRID, 0, lasted_update_RID)  # change the RID of the previous update in the indirection column of the latest update
         return True
-        """
+
 
 
 
