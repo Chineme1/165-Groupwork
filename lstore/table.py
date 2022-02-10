@@ -216,12 +216,13 @@ class Table:
 
     def page_directory(self, RID):
         position_page_range = RID//8192              #index of page range
-        position_base_page = (RID%8192)//512         #index of base page
+        position_base_page = (RID%8192)         #index of base page
         return position_page_range, position_base_page
 
     
     # read the column in rid in base page
     def read(self,RID,column):
+        RID = RID-1 #due to rid = 0 being reserved but we still want to use position 0 in our pages
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)[1]
     

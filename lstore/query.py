@@ -48,7 +48,7 @@ class Query:
         #Creating a metadata array before adding data
         self.table.num_table_record += 1
         indirection = None
-        rid = self.table.num_table_record+1 #as rid = 0 is reserved
+        rid = self.table.num_table_record 
         ts = int(time.time())
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
@@ -79,10 +79,10 @@ class Query:
         out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
         RID = output[0]
         numCols = len(query_columns)
-        arr = [[None for i in range(numCols)] for j in range(1)]
+        arr = [None for i in range(numCols)]
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr[0][i] = (self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
+                arr[i] = (self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
         ret = []
         ret.append(Record(RID, index_value, arr))
         return(ret)
