@@ -1,5 +1,6 @@
 
 
+
 class Page:
 
     def __init__(self):
@@ -19,8 +20,9 @@ class Page:
     def read(self, position):
     #I don't need to error check
         arr =  self.data[position*8 : position*8 +7]
+        print(arr)
         num = 0
-        num.from_bytes(arr, 'big')
+        num = int.from_bytes(arr, 'big')
         return(num)
 
     def write(self, value):
@@ -32,7 +34,7 @@ class Page:
                 self.data.extend(arr)
                 return(True)
             arr = value.to_bytes(8, 'big')
-            self.data.extend(arr) # change due to verying size
+            self.data[self.num_records*8 : self.num_records*8+7] = arr 
             self.num_records += 1
             return(True)
         else:
@@ -48,6 +50,9 @@ class Page:
         arr = value.to_bytes(8, 'big')
         self.data[position*8 : position*8+7] = arr
         return(True)
+        
+    def pagePrint(self):
+        print(self.data)
 
     
 
@@ -77,6 +82,7 @@ class BP:
             self.counter += 1
         self.updates +=1
         self.hold[page].write(value)
+        self.hold[page].pagePrint()
         return(self.counter)
     def write2(self, value, column, position):
         page = column
@@ -98,3 +104,6 @@ class BP:
         return(True, self.hold[page].read(position2))#Potentially wrong
 
 
+x0 = Page()
+x0.write(10000)
+print(x0.read(0)) 
