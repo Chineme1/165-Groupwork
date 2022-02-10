@@ -22,7 +22,7 @@ class Database():
     """
     def create_table(self, name, num_columns, key_index):
         table = Table(name, num_columns, key_index)
-        self.tables.append(table)  # Append the newly created table to the table list
+        self.tables.append(table)   # Append the newly created table to the table list
         return table
 
     """
