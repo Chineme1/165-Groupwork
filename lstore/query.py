@@ -54,13 +54,12 @@ class Query:
         meta = [indirection, rid, ts, schema_encoding]
         # adds record, with the first element being the key
         self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-        numCol = self.table.num_columns + 4
         self.table.write(indirection, 0)
         self.table.write(rid, 1)
         self.table.write(ts, 2)
         self.table.write(schema_encoding, 3)
-        for i in range(4, numCol):
-            self.table.write(columns[i - 4], i)
+        for i in range(self.table.num_columns):
+            self.table.write(columns[i], i+4)
         return (True)
 
 
@@ -107,7 +106,7 @@ class Query:
         ts = int(time.time())
         schema_encoding = 0
         update_RID = self.table.tail_write(Indirection, 0, RID)  # store the RID of the previous update in the indirection column of the latest update
-        # tail_write returns the RID of the latest update
+        # tail_write() stores the RID of the latest update in the indirection column of the base record and returns it
         self.table.tail_write(update_RID, 1, RID)
         self.table.tail_write(ts, 2, RID)
         self.table.tail_write(schema_encoding, 3, RID)
