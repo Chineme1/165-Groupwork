@@ -1,5 +1,6 @@
 
 
+
 class Page:
 
     def __init__(self):
@@ -18,9 +19,9 @@ class Page:
             return True
     def read(self, position):
     #I don't need to error check
-        arr =  self.data[position*8 : position*8 +7]
+        arr =  self.data[position*8 : position*8 + 8]
         num = 0
-        num.from_bytes(arr, 'big')
+        num = int.from_bytes(arr, 'big')
         return(num)
 
     def write(self, value):
@@ -29,10 +30,11 @@ class Page:
                 count = 0
                 zero = 0
                 arr = zero.to_bytes(8, 'big')
-                self.data.extend(arr)
+                self.data[self.num_records*8 : self.num_records*8+8] = arr 
+                self.num_records += 1
                 return(True)
             arr = value.to_bytes(8, 'big')
-            self.data.extend(arr) # change due to verying size
+            self.data[self.num_records*8 : self.num_records*8+8] = arr 
             self.num_records += 1
             return(True)
         else:
@@ -46,8 +48,11 @@ class Page:
              #self.data[position*8 : position*8+7] = 0 #come back to for changing RID to 0/NULL
             return(True)
         arr = value.to_bytes(8, 'big')
-        self.data[position*8 : position*8+7] = arr
+        self.data[position*8 : position*8+8] = arr
         return(True)
+        
+    def pagePrint(self):
+        print(self.data)
 
     
 
@@ -72,7 +77,7 @@ class BP:
 
     def write(self,value, column):
         page = column
-        position = self.counter%512 #Not needed for now
+        position = self.counter%512 
         if self.updates%self.columns == 0:
             self.counter += 1
         self.updates +=1
@@ -80,21 +85,33 @@ class BP:
         return(self.counter)
     def write2(self, value, column, position):
         page = column
-        position2 = position%512
-        self.hold[page].write2(value, position2)
+        self.hold[page].write2(value, position)
         return (True)
             
 
     def read(self, position, column):
-        page = ((position//512)-1)*self.columns+column
-        schemaPage = ((position//512)-1)*self.columns+4
-        indirectionPage = ((position//512)-1)*self.columns+1
-        position2 = position%512
-        bit = self.hold[schemaPage].read(position2)%pow(2, 7-column)
-        bit = bit//pow(2, 8-column) 
+        page = column
+        schemaPage = 3
+        indirectionPage = 0
+        bit = self.hold[schemaPage].read(position)%pow(2, 8-column)
+        bit = bit//pow(2, 7-column) 
         if bit == 1: 
-            encoding = self.hold[indirectionPage].read(position2)
+            encoding = self.hold[indirectionPage].read(position)
             return(False, encoding)
-        return(True, self.hold[page].read(position2))#Potentially wrong
+        return(True, self.hold[page].read(position))
 
 
+# x0 = BP(5)
+# for i in range(0, 5):
+    # x0.write(4294967295, i)
+    # x0.write(None, i)
+    # x0.write(4294967293, i)
+    # x0.write(4294967292, i)
+
+# print(x0.read(0, 0))
+# print(x0.read(1, 0))
+# print(x0.read(2, 0))
+# print(x0.read(3, 0))
+
+# x0.write2(None, 0, 0)
+# print(x0.read(0, 0))
