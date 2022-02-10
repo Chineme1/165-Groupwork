@@ -8,8 +8,6 @@ INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
 TIMESTAMP_COLUMN = 2
 SCHEMA_ENCODING_COLUMN = 3
-KEY_COLUMN = 4
-
 
 class Record:
 
@@ -39,14 +37,22 @@ class PageRange:
         self.pr_key = pr_key
         self.key = key
     
-
-    # read the column of position in base page
+    """
+    # read the column of specified position(RID) in base page
+    # :param position:
+    # :param column:  
+    """
     def read(self,position,column):
         base_page = position // 512                 #index of base page
         base_page_position = position % 512         #position inside base page we are reading
         return(self.base_pages[base_page].read(base_page_position,column))
 
-    # write value to column of the last base page
+
+    """
+    # write value to the specified column of the last base page
+    # :param value:
+    # :param column:  
+    """
     def write(self,value,column):
         base_page = self.num_base_record // 512
         base_page_position = self.num_base_record % 512
@@ -68,21 +74,36 @@ class PageRange:
             self.base_pages[base_page].write(value,column)
         return(True)
 
-    #Update the value of column in position of the base page
+    """
+    # Update the value of column in position of the base page
+    # :param value:
+    # :param position:  
+    # :param column:  
+    """
     def write2(self,value,column,position):
         base_page = (position//512)
         position2 = position%512
         self.base_pages[base_page].write2(value, column, position2)
         return(True)
     
-    #Read tail page of column of base page in position, return value of this column in tail page
+    """
+    # Read tail page of column of base page in position, return value of this column in tail page
+    # :param position:  
+    # :param column:  
+    """
     def tail_read(self,position,column):
         tail_page = position // 512
         tail_page_location = position % 512
         true_false, value = self.tail_pages[tail_page].read(tail_page_location,column)
         return value
-    
-    #Write value of column of base page in position, return the rid of created tail page 
+
+
+    """
+    # Write value of column of base page in position, return the rid of created tail page 
+    # :param value: value to be appended to the tail page
+    # :param column: specified column where the value belongs to
+    # :param position: the RID of the base record being updated 
+    """
     def tail_write(self,value,column,position):
         tail_page = self.num_tail_record // 512
         tail_page_position = self.num_tail_record % 512
@@ -99,16 +120,26 @@ class PageRange:
             self.tail_update += 1
             RID = self.tail_pages[tail_page].write(value,column)
         self.write2(RID, 0, position)
-        return(RID)
+        return(RID)       # return the RID of the update in tail page
 
-    #Update the value of column of the tailpage with position(position in tail page)
+
+    """
+    # Update the value in the tailpage with specified column and position
+    # :param value: updated value
+    # :param column: specified column to modify
+    # :param position: the RID of the tail page record being updated 
+    """
     def tail_write2(self,value,column,position):
         tail_page = (self.num_tail_record//512) * position + column
         position2 = position%512
-        self.tail_pages[tail_page].write2(value,position2)
+        self.tail_pages[tail_page].write2(value, column, position2)
         return(True)
 
-    #delete a base record, if indirection column is not zero then delete the following tail pages
+
+    """
+    # delete a base record, if indirection column is not zero then delete the following tail pages
+    # :param position:  
+    """
     def delete(self,position):
         base_page = position // 512
         base_page_position = position % 512
@@ -142,7 +173,8 @@ class PageRange:
         self.tail_pages.append(new_tail_page)
         return tail_page_index
 
-    def has_capacity(self): 
+
+    def has_capacity(self):   # check if there's enough capacity for adding new base page in the page range
         if (self.base_pages <= 15):
             return(True)
         return(False)
