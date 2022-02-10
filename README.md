@@ -1,1 +1,3 @@
-# 165a-winter-2020
+# 165-Groupwork1
+
+We implement the first milestone and get it done.
