@@ -46,25 +46,22 @@ class Query:
 
     def insert(self, *columns):
         #Creating a metadata array before adding data
-        try:
-            self.table.num_table_record += 1
-            indirection = None
-            rid = self.table.num_table_record+1 #as rid = 0 is reserved
-            ts = int(time.time())
-            schema_encoding = 0
-            meta = [indirection, rid, ts, schema_encoding]
-            # adds record, with the first element being the key
-            self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-            numCol = self.table.num_columns + 4
-            self.table.write(indirection, 0)
-            self.table.write(rid, 1)
-            self.table.write(ts, 2)
-            self.table.write(schema_encoding, 3)
-            for i in range(4, numCol):
-                self.table.write(columns[i - 4], i)
-            return (True)
-        except:
-            return False
+        self.table.num_table_record += 1
+        indirection = None
+        rid = self.table.num_table_record+1 #as rid = 0 is reserved
+        ts = int(time.time())
+        schema_encoding = 0
+        meta = [indirection, rid, ts, schema_encoding]
+        # adds record, with the first element being the key
+        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
+        numCol = self.table.num_columns + 4
+        self.table.write(indirection, 0)
+        self.table.write(rid, 1)
+        self.table.write(ts, 2)
+        self.table.write(schema_encoding, 3)
+        for i in range(4, numCol):
+            self.table.write(columns[i - 4], i)
+        return (True)
 
 
 
@@ -81,16 +78,15 @@ class Query:
     def select(self, index_value, index_column, query_columns):
         output = []
         out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
-        try:
-            RID = output[0]
-        except:
-            return(False)
+        RID = output[0]
         numCols = len(query_columns)
-        arr = []
+        arr = [[None for i in range(numCols)] for j in range(1)]
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr.append(self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
-        return(arr)
+                arr[0][i] = (self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
+        ret = []
+        ret.append(Record(RID, index_value, arr))
+        return(ret)
 
 
     """
