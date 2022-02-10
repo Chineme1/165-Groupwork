@@ -164,7 +164,7 @@ class Table:
         self.page_ranges_num = 0
         self.num_base_record = 0 
         self.num_tail_record = 0
-        self.num_table_record = 0
+        self.num_table_record = 0 #what is this for
         self.base_update = 0 # make sure we are not increasing num_base_record each time we update a column
         self.tail_update = 0 # same as above
         self.page_ranges = []
