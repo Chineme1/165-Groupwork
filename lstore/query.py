@@ -45,10 +45,9 @@ class Query:
     """
 
     def insert(self, *columns):
-        #Creating a metadata array before adding data
+        rid = self.table.num_table_record 
         self.table.num_table_record += 1
         indirection = None
-        rid = self.table.num_table_record 
         ts = int(time.time())
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
@@ -96,7 +95,7 @@ class Query:
 
     def update(self, primary_key, *columns):
         output = []
-        out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         try:
             RID = output[0]  # find the RID of the record we want to update
         except:
@@ -110,13 +109,17 @@ class Query:
         self.table.tail_write(update_RID, 1, RID)
         self.table.tail_write(ts, 2, RID)
         self.table.tail_write(schema_encoding, 3, RID)
+        val = 0
         for i in range(0, numCols):
             if columns[i] == None:   # if the value of columns[i] is not updated
                 unupdated_val = self.table.read(RID, i+4)   # read the value from the record in the base page
+                print("unupdated value = ", unupdated_val)
                 self.table.tail_write(unupdated_val, i+4, RID)
             else:
+                val += pow(2, 10-(i+4))
+                print("new value = ", columns[i])
                 self.table.tail_write(columns[i], i+4, RID)
-                self.table.write2(1, 3, RID)
+        self.table.write2(val, 3, RID)
         return True
 
 

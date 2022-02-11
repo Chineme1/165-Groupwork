@@ -34,7 +34,7 @@ class Page:
                 self.num_records += 1
                 return(True)
             arr = value.to_bytes(8, 'big')
-            self.data[self.num_records*8 : self.num_records*8+8] = arr 
+            self.data[self.num_records*8 : self.num_records*8+8] = arr #check for signed ints
             self.num_records += 1
             return(True)
         else:

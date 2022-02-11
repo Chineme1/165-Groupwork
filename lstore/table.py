@@ -121,6 +121,8 @@ class PageRange:
             x0 = BP(self.num_columns)
             self.tail_pages.append(x0)
             RID = self.tail_pages[self.count_tail_pages].write(value,column)
+            #print("value = ", value)
+            #print("read = ", self.tail_pages[self.count_tail_pages].read(RID-1, column)[1])
             self.count_tail_pages += 1
         else:
             if self.tail_update == self.num_columns + 3:
@@ -129,6 +131,9 @@ class PageRange:
             else:
                 self.tail_update += 1
             RID = self.tail_pages[tail_page].write(value,column)
+            #print("value = ", value)
+            #print("read = ", self.tail_pages[tail_page].read(RID-1, column)[1])
+            
         self.write2(RID, 0, position)
         return(RID)       # return the RID of the update in tail page
 
@@ -235,7 +240,6 @@ class Table:
     
     # read the column in rid in base page
     def read(self,RID,column):
-        RID = RID-1 #due to rid = 0 being reserved but we still want to use position 0 in our pages
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)[1]
     
@@ -270,7 +274,6 @@ class Table:
 
 
     def tail_read(self,RID,column):
-        RID = RID-1 #make sure to change is deleted RID is changed to -1
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].tail_read(position_base_page,column)
 
