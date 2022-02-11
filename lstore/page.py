@@ -79,8 +79,9 @@ class BP:
         page = column
         position = self.counter%512 
         ret = self.counter
-        if self.updates%(self.columns+4) == self.columns+4:
+        if self.updates%(self.columns+4) == self.columns+3:
             self.counter += 1
+            self.updates == 0
         self.updates +=1
         self.hold[page].write(value)
         return(ret)

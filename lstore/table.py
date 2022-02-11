@@ -117,9 +117,10 @@ class PageRange:
             x0 = BP(self.num_columns)
             self.tail_pages.append(x0)
             RID = self.tail_pages[self.count_tail_pages].write(value,column)
-            #print("value = ", value)
+            print("page range value = ", value)
             #print("read = ", self.tail_pages[self.count_tail_pages].read(RID-1, column)[1])
             self.count_tail_pages += 1
+            print("RID is ",RID)
         else:
             if self.tail_update == self.num_columns + 3:
                 self.num_tail_record += 1
@@ -127,7 +128,8 @@ class PageRange:
             else:
                 self.tail_update += 1
             RID = self.tail_pages[tail_page].write(value,column)
-            #print("value = ", value)
+            print("RID is ",RID)
+            print("page range value = ", value)
             #print("read = ", self.tail_pages[tail_page].read(RID-1, column)[1])
         #print("the tail RID = ", RID)   
         self.write2(RID, 0, position)
@@ -275,8 +277,11 @@ class Table:
 
     def tail_write(self,value,column,RID):
         page_range, page_range_position = self.page_directory(RID)
-        if self.tail_update == self.num_columns + 3:
+        if self.tail_update == self.num_columns + 4:
                 self.num_tail_record += 1
+                self.tail_update=0
+        #print("table num_tail_record:",self.num_tail_record)
+        #print("table tail_update:",self.tail_update)
         self.tail_update += 1
         self.page_ranges[page_range].tail_write(value,column,page_range_position)
         return(True)

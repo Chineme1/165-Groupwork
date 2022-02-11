@@ -98,6 +98,7 @@ class Query:
         self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         try:
             RID = output[0]  # find the RID of the record we want to update
+            print("RID of base page is :",RID)
         except:
             return False
         numCols = len(columns)
@@ -117,6 +118,7 @@ class Query:
             else:
                 val += pow(2, numCols-1-i) 
                 self.table.tail_write(columns[i], i+4, RID)
+                print("UPdate data",columns[i])
         self.table.write2(val, 3, RID)
         return True
 
