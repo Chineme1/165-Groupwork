@@ -93,9 +93,13 @@ class BP:
         page = column
         schemaPage = 3
         indirectionPage = 0
-        bit = self.hold[schemaPage].read(position)%pow(2, 8-column)
-        bit = bit//pow(2, 7-column) 
+        bit = self.hold[schemaPage].read(position)
+        if bit != 0:
+            print("bit = " , bit)
+        bit = bit%pow(2, 9-column)
+        bit = bit//pow(2, 8-column) 
         if bit == 1: 
+            print("encodin schema bit = 1 for column num ", column)
             encoding = self.hold[indirectionPage].read(position)
             return(False, encoding)
         return(True, self.hold[page].read(position))
