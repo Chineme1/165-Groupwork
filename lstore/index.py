@@ -257,7 +257,7 @@ class BTree:
             output = (self.findRange(low, high, node.rightChild, output))
         if len(node.entries) == 2 and low <= node.entries[1].key and high >= node.entries[1].key:
             output.append(node.entries[1].RID)
-        if len(node.entries) == 2 and (low <= node.entries[0].key or high >= node.entries[1].key):
+        if len(node.entries) == 2 and (low <= node.entries[1].key or high >= node.entries[0].key):
             output = (self.findRange(low, high, node.middleChild, output))
         return(output)
 
