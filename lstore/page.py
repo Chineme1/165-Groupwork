@@ -78,7 +78,7 @@ class BP:
     def write(self,value, column):
         page = column
         position = self.counter%512 
-        if self.updates%self.columns == 0:
+        if self.updates%(self.columns+4) == 0:
             self.counter += 1
         self.updates +=1
         self.hold[page].write(value)
