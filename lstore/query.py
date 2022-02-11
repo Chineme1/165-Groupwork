@@ -25,12 +25,11 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
+        if not self.table.page_directory(primary_key):
+            return False
         output = []
         out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        try:
-            RID = output[0]
-        except:
-            return False
+        RID = output[0]
         self.table.delete(RID)
         return(True)
             
@@ -45,22 +44,19 @@ class Query:
     """
 
     def insert(self, *columns):
-        rid = self.table.num_table_record 
+        #Creating a metadata array before adding data
         self.table.num_table_record += 1
         indirection = None
-        ts = int(time.time())
+        rid = self.table.num_table_record
+        ts = time.time()
         schema_encoding = 0
         meta = [indirection, rid, ts, schema_encoding]
-        # adds record, with the first element being the key
+        #adds record, with the first element being the key
         self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-        self.table.write(indirection, 0)
-        self.table.write(rid, 1)
-        self.table.write(ts, 2)
-        self.table.write(schema_encoding, 3)
-        for i in range(self.table.num_columns):
-            self.table.write(columns[i], i+4)
-        return (True)
-
+        numCol = self.table.num_columns + 4
+        for i in range (4, numCol):
+            self.table.write(columns[i-4], i)
+        return(True)
 
 
 
@@ -78,13 +74,11 @@ class Query:
         out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
         RID = output[0]
         numCols = len(query_columns)
-        arr = [None for i in range(numCols)]
+        arr = []
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr[i] = (self.table.read(RID, i+4))  # read the data in the desired columns and append it to the list
-        ret = []
-        ret.append(Record(RID, index_value, arr))
-        return(ret)
+                arr.append(self.table.read(RID, i))  # read the data in the desired columns and append it to the list
+        return(arr)
 
 
     """
@@ -95,33 +89,46 @@ class Query:
 
     def update(self, primary_key, *columns):
         output = []
-        self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
-        try:
-            RID = output[0]  # find the RID of the record we want to update
-            print("RID of base page is :",RID)
-        except:
-            return False
+        out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        RID = output[0]
         numCols = len(columns)
-        Indirection = self.table.read(RID, 0)     # find the value in the indirectionn column of given record
+        Indirection = self.table.read(RID, 0)
+        rid = 0
         ts = int(time.time())
         schema_encoding = 0
-        update_RID = self.table.tail_write(Indirection, 0, RID)  # store the RID of the previous update in the indirection column of the latest update
-        # tail_write() stores the RID of the latest update in the indirection column of the base record and returns it
-        self.table.tail_write(update_RID, 1, RID)
+        self.table.tail_write(Indirection, 0, RID)
+        self.table.tail_write(rid, 1, RID)
         self.table.tail_write(ts, 2, RID)
         self.table.tail_write(schema_encoding, 3, RID)
-        val = 0
         for i in range(0, numCols):
-            if columns[i] == None:   # if the value of columns[i] is not updated
-                unupdated_val = self.table.read(RID, i+4)   # read the value from the record in the base page
-                self.table.tail_write(unupdated_val, i+4, RID)
+            if columns[i] == None:
+                val = self.table.read(RID, i)
+                self.table.tail_write(val, 3, RID)
             else:
-                val += pow(2, numCols-1-i) 
                 self.table.tail_write(columns[i], i+4, RID)
-                print("UPdate data",columns[i])
-        self.table.write2(val, 3, RID)
-        return True
+                self.table.write2(1, 3, RID)
+            
+        
 
+
+        """       
+        if not self.table.page_directory(primary_key):
+            return False
+        output = []
+        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output) #find RID of the record we want to update
+        indirectionRID = self.table.read(RID, 0)   # find the value in the indirection column of the record
+        for i in range(columns):
+            if columns(i):
+                self.table.tail_write(columns(i), i+4, RID)   # write the given updated value to the tail page (tail_write edits the indirection column)
+            if not columns(i):
+                unupdated_value = self.table.read(RID, i+4)  # get the data that stays the same
+                self.table.tail_write(unupdated_value, i+4, RID)  # write the unupdated value to the tail page
+
+        if indirectionRID:  # check if it's the first update
+            lasted_update_RID = self.table.read(RID, 0)   # find the RID stored in the indirection column, which points to the lastest update in the tail page
+            self.table.tail_write2(indirectionRID, 0, lasted_update_RID)  # change the RID of the previous update in the indirection column of the latest update
+        return True
+        """
 
 
 
@@ -138,12 +145,9 @@ class Query:
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
         num = 0
-        try:
-            for i in output:
-                num += self.table.read(i, aggregate_column_index)
-            return (num)
-        except:
-            return False
+        for i in output:
+            num += self.table.read(i, aggregate_column_index)
+        return(num)
 
     """
     incremenets one column of the record
@@ -162,5 +166,3 @@ class Query:
             u = self.update(key, *updated_columns)
             return u
         return False
-
-
