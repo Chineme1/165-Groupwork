@@ -78,11 +78,12 @@ class BP:
     def write(self,value, column):
         page = column
         position = self.counter%512 
-        if self.updates%(self.columns+4) == 0:
+        ret = self.counter
+        if self.updates%(self.columns+4) == self.columns+4:
             self.counter += 1
         self.updates +=1
         self.hold[page].write(value)
-        return(self.counter)
+        return(ret)
     def write2(self, value, column, position):
         page = column
         self.hold[page].write2(value, position)
@@ -94,14 +95,12 @@ class BP:
         schemaPage = 3
         indirectionPage = 0
         bit = self.hold[schemaPage].read(position)
-        if bit != 0:
-            print("bit = " , bit)
         bit = bit%pow(2, 9-column)
         bit = bit//pow(2, 8-column) 
         if bit == 1: 
-            print("encodin schema bit = 1 for column num ", column)
-            encoding = self.hold[indirectionPage].read(position)
-            return(False, encoding)
+            indirection = self.hold[indirectionPage].read(position)
+            #print("the indirection col = ", indirection)
+            return(False, indirection)
         return(True, self.hold[page].read(position))
 
 

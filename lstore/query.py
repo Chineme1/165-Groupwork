@@ -113,11 +113,9 @@ class Query:
         for i in range(0, numCols):
             if columns[i] == None:   # if the value of columns[i] is not updated
                 unupdated_val = self.table.read(RID, i+4)   # read the value from the record in the base page
-                print("unupdated value = ", unupdated_val)
                 self.table.tail_write(unupdated_val, i+4, RID)
             else:
-                val += pow(2, 4-i) # take into account deif num of cols
-                print("new value = ", columns[i])
+                val += pow(2, numCols-1-i) 
                 self.table.tail_write(columns[i], i+4, RID)
         self.table.write2(val, 3, RID)
         return True

@@ -110,12 +110,8 @@ class PageRange:
     # :param position: the RID of the base record being updated 
     """
     def tail_write(self,value,column,position):
-        #print("num tail records = " , self.num_tail_record)
-        #print("num tail pages = " , self.count_tail_pages)
         tail_page = self.num_tail_record // 512
         tail_page_position = self.num_tail_record % 512
-        #print("tail page position = ", tail_page_position)
-        #print("tail page update = ", self.tail_update)
         if tail_page_position == 0 and self.tail_update == 0:
             self.tail_update += 1
             x0 = BP(self.num_columns)
@@ -133,7 +129,7 @@ class PageRange:
             RID = self.tail_pages[tail_page].write(value,column)
             #print("value = ", value)
             #print("read = ", self.tail_pages[tail_page].read(RID-1, column)[1])
-            
+        #print("the tail RID = ", RID)   
         self.write2(RID, 0, position)
         return(RID)       # return the RID of the update in tail page
 
