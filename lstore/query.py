@@ -44,15 +44,14 @@ class Query:
     """
 
     def insert(self, *columns):
-        #Creating a metadata array before adding data
+        #create metadata
         self.table.num_table_record += 1
         indirection = None
         rid = self.table.num_table_record
-        ts = time.time()
+        ts = int(time.time())
         schema_encoding = 0
-        meta = [indirection, rid, ts, schema_encoding]
+        meta = [indirection, rid, ts, schema_encoding] #TODO: write the metadata when we insert
         #adds record, with the first element being the key
-        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
         numCol = self.table.num_columns + 4
         for i in range (4, numCol):
             self.table.write(columns[i-4], i)
@@ -71,7 +70,7 @@ class Query:
     """
     def select(self, index_value, index_column, query_columns):
         output = []
-        out = self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
+        self.table.index.indices[index_column].find(index_value, self.table.index.indices[index_column].root, output) # find the RID with the filter parameters
         RID = output[0]
         numCols = len(query_columns)
         arr = []
@@ -88,8 +87,11 @@ class Query:
     """
 
     def update(self, primary_key, *columns):
+        # Check if exists
+        if not self.table.page_directory(primary_key):
+            return False
         output = []
-        out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+        self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         RID = output[0]
         numCols = len(columns)
         Indirection = self.table.read(RID, 0)
@@ -107,30 +109,7 @@ class Query:
             else:
                 self.table.tail_write(columns[i], i+4, RID)
                 self.table.write2(1, 3, RID)
-            
-        
-
-
-        """       
-        if not self.table.page_directory(primary_key):
-            return False
-        output = []
-        RID = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output) #find RID of the record we want to update
-        indirectionRID = self.table.read(RID, 0)   # find the value in the indirection column of the record
-        for i in range(columns):
-            if columns(i):
-                self.table.tail_write(columns(i), i+4, RID)   # write the given updated value to the tail page (tail_write edits the indirection column)
-            if not columns(i):
-                unupdated_value = self.table.read(RID, i+4)  # get the data that stays the same
-                self.table.tail_write(unupdated_value, i+4, RID)  # write the unupdated value to the tail page
-
-        if indirectionRID:  # check if it's the first update
-            lasted_update_RID = self.table.read(RID, 0)   # find the RID stored in the indirection column, which points to the lastest update in the tail page
-            self.table.tail_write2(indirectionRID, 0, lasted_update_RID)  # change the RID of the previous update in the indirection column of the latest update
-        return True
-        """
-
-
+        return (True)
 
     """
     :param start_range: int         # Start of the key range to aggregate 
@@ -142,11 +121,13 @@ class Query:
     """
 
     def sum(self, start_range, end_range, aggregate_column_index):
+        # Get the range of records using B-Tree's findRange function
         output = []
         self.table.index.indices[0].findRange(start_range, end_range, self.table.index.indices[0].root, output)
+        # Loop through the range and add all the read values
         num = 0
         for i in output:
-            num += self.table.read(i, aggregate_column_index)
+            num += self.table.readValue(i, aggregate_column_index)
         return(num)
 
     """

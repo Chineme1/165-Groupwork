@@ -247,19 +247,19 @@ tree = BTree()
 #insert_time_1 = process_time()
 
 #print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
-list = []
-for i in range (1, 10000):
-    tree.insert(i+906659671, i, tree.root)
-    output = []
-    tree.find(i+906659671, tree.root, output)
-    print(i)
-    list.append(i+906659671)
-for i in range (1, 10000):
-    output = []
-    #num = choice(list)
-    num = i+906659671
-    tree.find(num, tree.root, output)
-    if output[0] != i:
-        print("something went wrong")
-        x = 0
+# list = []
+# for i in range (1, 10000):
+#     tree.insert(i+906659671, i, tree.root)
+#     output = []
+#     tree.find(i+906659671, tree.root, output)
+#     print(i)
+#     list.append(i+906659671)
+# for i in range (1, 10000):
+#     output = []
+#     #num = choice(list)
+#     num = i+906659671
+#     tree.find(num, tree.root, output)
+#     if output[0] != i:
+#         print("something went wrong")
+#         x = 0
 
