@@ -11,7 +11,6 @@ class Query:
     Queries that succeed should return the result or True
     Any query that crashes (due to exceptions) should return False
     """
-
     def __init__(self, table):
         self.table = table
         pass
@@ -35,14 +34,11 @@ class Query:
             
         
         
-
-
     """
     # Insert a record with specified columns
     # Return True upon succesful insertion
     # Returns False if insert fails for whatever reason
     """
-
     def insert(self, *columns):
         #create metadata
         self.table.num_table_record += 1
@@ -50,11 +46,10 @@ class Query:
         rid = self.table.num_table_record
         ts = int(time.time())
         schema_encoding = 0
-        meta = [indirection, rid, ts, schema_encoding] #TODO: write the metadata when we insert
-        #adds record, with the first element being the key
-        numCol = self.table.num_columns + 4
-        for i in range (4, numCol):
-            self.table.write(columns[i-4], i)
+        data = [indirection, rid, ts, schema_encoding]
+        #append the insert data into the metadata array
+        data.append(columns)
+        self.table.write(data, rid)
         return(True)
 
 
@@ -76,8 +71,9 @@ class Query:
         arr = []
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr.append(self.table.read(RID, i))  # read the data in the desired columns and append it to the list
+                arr.append(self.table.readValue(RID, i))  # read the data in the desired columns and append it to the list
         return(arr)
+
 
 
     """
@@ -85,31 +81,26 @@ class Query:
     # Returns True if update is succesful
     # Returns False if no records exist with given key or if the target record cannot be accessed due to 2PL locking
     """
-
     def update(self, primary_key, *columns):
-        # Check if exists
+        # check if exists
         if not self.table.page_directory(primary_key):
             return False
+        # get RID
         output = []
         self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         RID = output[0]
+        # update column
+        ba_updated = []
         numCols = len(columns)
-        Indirection = self.table.read(RID, 0)
-        rid = 0
-        ts = int(time.time())
-        schema_encoding = 0
-        self.table.tail_write(Indirection, 0, RID)
-        self.table.tail_write(rid, 1, RID)
-        self.table.tail_write(ts, 2, RID)
-        self.table.tail_write(schema_encoding, 3, RID)
         for i in range(0, numCols):
-            if columns[i] == None:
-                val = self.table.read(RID, i)
-                self.table.tail_write(val, 3, RID)
+            if(columns[i] == None):
+                ba_updated[i] = 1
             else:
-                self.table.tail_write(columns[i], i+4, RID)
-                self.table.write2(1, 3, RID)
+                ba_updated[i] = 0
+        self.table.update(RID, columns, ba_updated)
         return (True)
+
+
 
     """
     :param start_range: int         # Start of the key range to aggregate 
@@ -119,7 +110,6 @@ class Query:
     # Returns the summation of the given range upon success
     # Returns False if no record exists in the given range
     """
-
     def sum(self, start_range, end_range, aggregate_column_index):
         # Get the range of records using B-Tree's findRange function
         output = []
@@ -130,6 +120,8 @@ class Query:
             num += self.table.readValue(i, aggregate_column_index)
         return(num)
 
+
+
     """
     incremenets one column of the record
     this implementation should work if your select and update queries already work
@@ -138,7 +130,6 @@ class Query:
     # Returns True is increment is successful
     # Returns False if no record matches key or if target record is locked by 2PL.
     """
-
     def increment(self, key, column):
         r = self.select(key, self.table.key, [1] * self.table.num_columns)[0]
         if r is not False:
