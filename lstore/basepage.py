@@ -14,14 +14,18 @@ class BasePage:
         if position == None:                                #write to the end 
             ret = self.counter
             for i in range(self.columns):
-                self.page[i].write(columns[i],None)
+                if columns[i] != None :
+                    self.page[i].write(columns[i],None)
             self.counter += 1
             return(ret)
-        else:                                               #write to the position
+        else:
+            position = self.counter%512                     #write to the position
             for i in range(self.columns):
-                self.page[i].write(columns[i],position)
+                if columns[i] != None :
+                    self.page[i].write(columns[i],None)
             self.counter += 1
             return (True)
+
 
 
     def read(self, position, column):
