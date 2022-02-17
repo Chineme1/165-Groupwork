@@ -1,4 +1,4 @@
-from lstore.page import Page
+from page import Page
 
 class BasePage:
     def __init__(self,columns):
