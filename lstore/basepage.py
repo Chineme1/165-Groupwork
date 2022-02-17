@@ -3,10 +3,10 @@ from page import Page
 class BasePage:
     def __init__(self,columns):
         self.columns = columns
-        self.page = [None]*512 #Physiical holder
+        self.page = [] #Physiical holder
         self.counter = 0#total number of pages
         self.updates = 0
-        for i in range(0, self.columns+4):
+        for i in range(0, self.columns):
             x0 = Page()
             self.page.append(x0)
 
