@@ -3,7 +3,7 @@ from page import Page
 class BasePage:
     def __init__(self,columns):
         self.columns = columns
-        self.page = []#Physiical holder
+        self.page = [None]*512 #Physiical holder
         self.counter = 0#total number of pages
         self.updates = 0
         for i in range(0, self.columns+4):
@@ -18,13 +18,12 @@ class BasePage:
                     self.page[i].write(columns[i],None)
             self.counter += 1
             return(ret)
-        else:
-            position = self.counter%512                     #write to the position
+        else:                                               #write to the position
             for i in range(self.columns):
                 if columns[i] != None :
                     self.page[i].write(columns[i],None)
             self.counter += 1
-            return (True)
+            return (position)
 
 
 
