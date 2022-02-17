@@ -17,7 +17,7 @@ class BasePage:
                 self.page[i].write(columns[i],None)
             self.counter += 1
             return(ret)
-        else:#write to the position
+        else:                                               #write to the position
             for i in range(self.columns):
                 self.page[i].write(columns[i],position)
             self.counter += 1
