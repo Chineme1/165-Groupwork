@@ -24,7 +24,11 @@ def __init__(self,num_columns,pr_key,key):
 def BaseRead(self,position,column): #This is Base READ *...*
         base_page = position // 512                 #index of base page
         base_page_position = position % 512         #position inside base page we are reading
-    return(self.base_pages[base_page].read(base_page_position,column))#????? Don't know needs to be tested #Really need to
+        ret = self.base_pages[base_page].read(base_page_position,column)
+        if ret[0] == False:
+            self.TailRead(ret[1], column)
+        else:
+            return(ret[1])
     
 def BaseWrite(self,columns,position):#value we insert
     #Columns is the array of all values in a record
@@ -65,7 +69,10 @@ def TailRead(self,position,column):
     #true_false, encoding = self.tail_pages[tail_page].read(tail_page_location,column)
     tail_page = position // 512                 #index of base page
     tail_page_position = position % 512
-    return(self.tail_pages[tail_page].read(tail_page_position,column)
+    if ret[0] == False:
+            self.TailRead(ret[1], column)
+        else:
+            return(ret[1])
 
 def TailWrite(self,columns,position):
         tail_page = self.num_tail_record // 512
