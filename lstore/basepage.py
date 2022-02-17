@@ -11,19 +11,18 @@ class BasePage:
             self.page.append(x0)
 
 
-    def write(self,value, column, position):
-        page = column
+    def write(self, columns, position):
         if position == None:                                #write to the end 
             ret = self.counter
-            if self.updates%(self.columns+4) == self.columns+3:
-                self.counter += 1
-                self.updates == 0
-            self.updates +=1
-            self.page[page].write(value,None)
+            for i in range(self.columns):
+                self.page[i].write(columns[i],None)
+            self.counter += 1
             return(ret)
         else:
             position = self.counter%512                     #write to the position
-            self.page[page].write(value, position)
+            for i in range(self.columns):
+                self.page[i].write(columns[i],position)
+            self.counter += 1
             return (True)
 
 
