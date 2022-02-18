@@ -1,7 +1,7 @@
 from asyncio.windows_events import NULL
 from msilib.schema import tables
 from lstore.index import Index
-from lstore.page import BP
+from lstore.basepage import BasePage
 from time import time
 
 INDIRECTION_COLUMN = 0
@@ -27,7 +27,7 @@ class PageRange:
     """
 
     def __init__(self,num_columns,pr_key,key):
-        self.num_columns = num_columns
+        self.num_columns = num_columns    # number of columns besides the metadata
         self.base_pages = [None]* 16
         self.tail_pages = []
         self.count_base_pages = 0
@@ -48,7 +48,7 @@ class PageRange:
         if base_page_position == 0:
             self.num_base_record += 1
             self.count_base_pages += 1
-            x0 = BP(self.num_columns)
+            x0 = BasePage(self.num_columns)
             self.base_pages[base_page] = x0
             x0.write(value,column)
         else:
@@ -68,25 +68,33 @@ class PageRange:
         true_false, encoding = self.tail_pages[tail_page].read(tail_page_location,column)
         return encoding
 
-    def tail_write(self,value,column,position):
-        tail_page = self.num_tail_record // 512
+
+
+    """
+    # :param columns: index of the desired column
+    # :param RID: RID of the tail record
+    """
+    def tail_write(self,columns,RID,baseRID):
+        tail_page = self.num_tail_record // 512    # find the index of the tail page we are at
         tail_page_position = self.num_tail_record % 512
         if tail_page_position == 0:
-            self.num_tail_record += 1
             x0 = self.create_tail_page()
             #self.tail_pages[tail_page] = x0
-            RID = self.tail_pages[x0].write(value,column)
+            tailRID = self.tail_pages[x0].write(columns,RID)   # write() returns the RID of the tail record
         else:
-            self.num_tail_record += 1
-            RID = self.tail_pages[tail_page].write(value,column)
-        self.write2(RID, 1, position)
+            tailRID = self.tail_pages[tail_page].write(columns,RID)
+        self.num_tail_record += 1
+        #self.write2(RID, 1, position)
         return(True)
 
+
+    """
     def tail_write2(self,value,column,position):
         tail_page = (self.num_tail_record//512) * position + column
         position2 = position%512
         self.tail_pages[tail_page].write2(value,position2)
         return(True)
+    """
 
     def delete(self,position):
         base_page = position // 512
@@ -117,7 +125,7 @@ class PageRange:
     def create_tail_page(self):
         tail_page_index = self.count_tail_pages
         self.count_tail_pages += 1
-        new_tail_page = BP(self.num_columns)
+        new_tail_page = BasePage(self.num_columns)
         self.tail_pages.append(new_tail_page)
         return tail_page_index
 
@@ -149,7 +157,7 @@ class Table:
         pass
     
     """
-    This function creat page ranges, and return the pr_key of the created page range
+    This function creat page ranges, and return the primary key of the created page range
 
     """
     def creat_page_range(self):
@@ -164,42 +172,63 @@ class Table:
         position_base_page = (RID%8192)//512         #index of base page
         return position_page_range, position_base_page
 
+
+    """
+    # Read the data with given RID and specified column index, return a single value in the record
+    # :param RID: RID of the desired record
+    # :param column: index of the desired column
+    """
     def read(self,RID,column):
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].read(position_base_page,column)[1]
     
-    def write(self,value,column):
+
+    """
+    # Append a new record to the base page if RID not given, otherwise edit the existing record
+    # :param columns: a list of new values corresponding to each column
+    # :param RID: RID of the record to be updated
+    """
+    def write(self,columns,RID):
         page_range = self.num_base_record // 8192
         page_range_position = self.num_base_record % 8192
+        self.num_base_record += 1
         if page_range_position == 0:
-            self.num_base_record += 1
             self.page_ranges_num += 1
             x0 = PageRange(self.num_columns, self.page_ranges_num, 0)
             self.page_ranges.append(x0)
-            x0.write(value,column)
+            x0.write(columns,RID)
         else:
-            self.num_base_record += 1
-            self.page_ranges[page_range].write(value,column)
+            self.page_ranges[page_range].write(columns,RID)
         return (True)
 
-    def write2(self,value,column,position):
-        page_range = (position//8192)
-        position2 = position % 8192
-        self.page_ranges[page_range].write2(value,column,position2)
-        return(True)
 
 
+    """
+    # Read the tail page data with given RID and specified column index, return a single value in the record
+    # :param RID: RID of the wanted record
+    # :param column: index of the wanted column
+    """
     def tail_read(self,RID,column):
         position_page_range, position_base_page = self.page_directory(RID)
         return self.page_ranges[position_page_range].tail_read(position_base_page,column)
 
-    def tail_write(self,value,column,RID):
+
+    """
+    # Append a new record to the tail page
+    # :param value: value to append
+    # :param column: index of the column to be appended to
+    # :param RID: RID of the corresponding base page record
+    """
+    def tail_write(self,columns,RID):
         page_range, page_range_position = self.page_directory(RID)
         self.num_tail_record += 1
         self.page_ranges[page_range].tail_write(value,column,page_range_position)
         return(True)
 
-
+    """
+    # Edit an existing record in the tail page
+    
+    """
     def tail_write2(self,value,column,RID,position):
         page_range = (self.num_tail_record//8192) * position + column
         position2 = self.num_tail_record % 8192
@@ -207,13 +236,20 @@ class Table:
         return(True)
 
 
+    """
+    # Delete a record
+    # :param RID: RID of the record to be deleted
+    """
     def delete(self,RID):
         position_page_range, position_base_page = self.page_directory(RID)
         self.page_ranges[position_page_range].delete(position_base_page)
         return(True)
         
+
+    """
+    # Merge tail records with corresponding base records
+    """
     def __merge(self):
-        print("merge is happening")
         pass
  
 
