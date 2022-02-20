@@ -41,9 +41,9 @@ class Query:
     """
     def insert(self, *columns):
         #create metadata
-        self.table.num_table_record += 1
+        self.table.num_base_record += 1
         indirection = None
-        rid = self.table.num_table_record
+        rid = self.table.num_base_record
         ts = int(time.time())
         schema_encoding = 0
         data = [indirection, rid, ts, schema_encoding]
