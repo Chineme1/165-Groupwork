@@ -1,4 +1,5 @@
 from lstore.table import Table
+from lstore.bufferpool import BufferPool
 
 class Database():
 
@@ -12,6 +13,7 @@ class Database():
         pass
     #Optional
     def close(self):
+        BufferPool.flush()
         pass
 
     """
@@ -22,16 +24,16 @@ class Database():
     """
     def create_table(self, name, num_columns, key_index):
         table = Table(name, num_columns, key_index)
-        self.tables.append(table)#Append to the list []
+        self.tables.append(table)   # Append the newly created table to the table list
         return table
 
     """
     # Deletes the specified table
     """
     def drop_table(self, name):
-        for i in self.tables: #to be added to Git
-            if i.get_name() == name:
-                self.tables.remove(name)#Might have to do some space allocation
+        for i in self.tables:
+            if i.name == name:
+                self.tables.remove(name)
                 return True
         return False
 
@@ -41,6 +43,6 @@ class Database():
     """
     def get_table(self, name):
         for i in self.tables:
-            if i.get_name() == name:
+            if i.name == name:
                 return i
         return False
