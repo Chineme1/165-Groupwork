@@ -41,7 +41,7 @@ class Page:
     
 
 
-x0 = Page()
+# x0 = Page()
 # for i in range(1, 10):
     # print(x0.write(i, None))
 # x0.write(5, 1)

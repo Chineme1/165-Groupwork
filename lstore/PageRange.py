@@ -1,5 +1,5 @@
-
-from time import time
+from basepage import BasePage
+from time import process_time
 
 
 class PageRange:
@@ -22,39 +22,34 @@ class PageRange:
         self.key = key
 
     def BaseRead(self,position,column): #This is Base READ *...*
-        base_page = position // 512                 #index of base page
-        base_page_position = position % 512         #position inside base page we are reading
+        base_page = (position-1) // 512                 #index of base page
+        base_page_position = ((position-1) % 512)+1        #position inside base page we are reading
         ret = self.base_pages[base_page].read(base_page_position,column)
         if ret[0] == False:
-            self.TailRead(ret[1], column)
+            return(self.TailRead(ret[1], column))
         else:
             return(ret[1])
     
     def BaseWrite(self,columns,position):#value we insert
     #Columns is the array of all values in a record
     #Position Use??
-        base_page = self.num_base_record // 512
-        base_page_position = self.num_base_record % 512
         if position == None:
-            base_page = self.num_base_record // 512
+            base_page = (self.num_base_record) // 512
             base_page_position = self.num_base_record % 512
-            x0.write()#write to the end# To be updated/Continued
             if base_page_position == 0:
-                x0 = BP(self.num_columns)#Does it need the column and/or positon
+                x0 = BasePage(self.num_columns)#Does it need the column and/or positon
                 self.base_pages[self.count_base_pages]  = x0 # Might be self.count_base_pages + 1 or just
                 self.count_base_pages += 1
                 self.num_base_record += 1
-                return x0.write(columns, base_page_position)
+                return x0.write(columns, base_page_position+1)
             else:
                 self.num_base_record += 1
-                return self.base_pages[self.count_base_pages].write(columns,base_page_position) #To be tested#TBT
-                
-
+                return self.base_pages[self.count_base_pages-1].write(columns,base_page_position+1) #To be tested#TBT
         else:#Write to the position specified
             base_page = position// 512
             base_page_position = position % 512
             #self.num_base_record += 1 #Not needed ??
-            return self.base_pages[base_page].write(value,column)
+            return self.base_pages[base_page].write(columns, base_page_position)
 
     
     #def write2(self,value,column,position):
@@ -64,11 +59,9 @@ class PageRange:
 # return(True)
 
     def TailRead(self,position,column):
-        tail_page = position // 512                 #index of base page
-        tail_page_position = position % 512         #position inside base page we are reading
+        tail_page = (position-1) // 512                 #index of base page
+        tail_page_position = ((position-1) % 512 +1)         #position inside base page we are reading
         ret = self.tail_pages[tail_page].read(tail_page_position,column)
-        tail_page = position // 512                 #index of base page
-        tail_page_position = position % 512
         if ret[0] == False:
                 self.TailRead(ret[1], column)
         else:
@@ -80,21 +73,20 @@ class PageRange:
         if position == None:
             tail_page = self.num_tail_record // 512
             tail_page_position = self.num_tail_record % 512
-            #x0.write()#write to the end# To be updated/Continued
             if tail_page_position == 0:
-                x0 = BP(self.num_columns)#Does it need the column and/or positon
-                self.tail_pages[self.count_tail_pages]  = x0 # Might be self.count_base_pages + 1 or just
+                x0 = BasePage(self.num_columns)#Does it need the column and/or positon
+                self.tail_pages.append(x0) # Might be self.count_base_pages + 1 or just
                 self.count_tail_pages += 1
                 self.num_tail_record += 1
-                return x0.write(columns, tail_page_position)
+                return x0.write(columns, tail_page_position+1)
             else:
                 self.num_tail_record += 1
-                return self.tail_pages[self.count_tail_pages].write(columns,tail_page_position) #To be tested#TBT
+                return self.tail_pages[self.count_tail_pages-1].write(columns,tail_page_position+1) #To be tested#TBT
         else:#Write to the position specified
             tail_page = position// 512
             tail_page_position = position % 512
             #self.num_base_record += 1 #Not needed ??
-            return self.tail_pages[tail_page].write(value,column)
+            return self.tail_pages[tail_page].write(columns, tail_page_position)
 
     def has_capacity(self):
     #Append to the list in the Page range
@@ -123,30 +115,45 @@ class PageRange:
            num = 0
            CurrSchema = self.BaseRead(position,3)
            CurrSchema = CurrSchema.to_bytes(8,'big')
-           BA = BA & CurrSchema#Check if this works
-           for i in range(self.num_columns):#Doesn't need 4 potentially
-           
-                if BA[i] == 1:
+           for i in range(0, self.num_columns):#Doesn't need 4 potentially
+                if BA[i] == 1 or CurrSchema[i] == 1:
                     num += pow(2,self.num_columns -i -1)
            
            array = [None]*self.num_columns
            array[3] = num
            self.BaseWrite(array,position)
-           
            metadata = [None]*4
            metadata[0] = self.BaseRead(position,0)
-           metadata[1] =self.num_tail_record
-           metadata[2] = time.ts()#To be fixed/Checked
+           metadata[1] = self.num_tail_record+1
+           metadata[2] = int(process_time())      #To be fixed/Checked
            metadata[3] = 0 #Nott being used noW
            for i in range(4, self.num_columns):
-                if columns[i] == None:
-                    columns[i] = self.BaseRead(position, i)
+                if columns[i-4] == None:
+                    columns[i-4] = self.BaseRead(position, i)
            
            columns  = metadata + columns
            array[3] = None
-           array[0] = self.num_tail_record
+           array[0] = self.num_tail_record+1
            self.BaseWrite(array, position)#To be checked
            self.TailWrite(columns, None)
            
            
 x0 = PageRange(5, 0, 0)
+for i in range(1, 10):
+    arr = [0, i, 0, 0, i]
+    print(x0.BaseWrite(arr, None))
+print("break")
+for i in range(1, 10):
+    print(x0.BaseRead(i, 4))
+x0.Update(5, [1], [0, 0, 0, 0, 1])
+print(x0.BaseRead(5, 4))
+x0.Update(5, [3], [0, 0, 0, 0, 1])
+print(x0.BaseRead(5, 4))
+
+print(x0.BaseRead(5, 1))
+print(x0.TailRead(1, 1))
+print(x0.TailRead(2, 1))
+x0.Delete(5)
+print(x0.BaseRead(5, 1))
+print(x0.TailRead(1, 1))
+print(x0.TailRead(2, 1))

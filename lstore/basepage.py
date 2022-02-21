@@ -1,4 +1,4 @@
-from lstore.page import Page
+from page import Page
 
 class BasePage:
     def __init__(self,columns):
@@ -12,17 +12,15 @@ class BasePage:
 
     def write(self, columns, position):
         if position == None:                                #write to the end 
-            ret = self.counter
             for i in range(self.columns):
                 if columns[i] != None :
                     self.page[i].write(columns[i],None)
             self.counter += 1
-            return(ret)
+            return(self.counter)
         else:                                               #write to the position
             for i in range(self.columns):
                 if columns[i] != None :
-                    self.page[i].write(columns[i],None)
-            self.counter += 1
+                    self.page[i].write(columns[i],position)
             return (position)
 
 
@@ -32,8 +30,8 @@ class BasePage:
         schemaPage = 3
         indirectionPage = 0
         bit = self.page[schemaPage].read(position)
-        bit = bit%pow(2, 9-column)
-        bit = bit//pow(2, 8-column) 
+        bit = bit%pow(2, self.columns-column)
+        bit = bit//pow(2, self.columns-1-column) 
         if bit == 1: 
             indirection = self.page[indirectionPage].read(position)
             return(False, indirection)
@@ -44,3 +42,12 @@ class BasePage:
             return False
         else:
             return True
+
+
+# x0 = BasePage(5)
+# for i in range(1, 10):
+    # arr = [i, i, i, i, i]
+    # print(x0.write(arr, None))
+# x0.write([0, 0, 0, 0, 0], 5)
+# for i in range(1, 10):
+    # print(x0.read(i, 0))
