@@ -3,27 +3,28 @@ from lstore.page import Page
 class BasePage:
     def __init__(self,columns):
         self.columns = columns
-        self.page = []#Physiical holder
+        self.page = [] #Physiical holder
         self.counter = 0#total number of pages
         self.updates = 0
-        for i in range(0, self.columns+4):
+        for i in range(0, self.columns):
             x0 = Page()
             self.page.append(x0)
-
 
     def write(self, columns, position):
         if position == None:                                #write to the end 
             ret = self.counter
             for i in range(self.columns):
-                self.page[i].write(columns[i],None)
+                if columns[i] != None :
+                    self.page[i].write(columns[i],None)
             self.counter += 1
             return(ret)
-        else:
-            position = self.counter%512                     #write to the position
+        else:                                               #write to the position
             for i in range(self.columns):
-                self.page[i].write(columns[i],position)
+                if columns[i] != None :
+                    self.page[i].write(columns[i],None)
             self.counter += 1
-            return (True)
+            return (position)
+
 
 
     def read(self, position, column):
