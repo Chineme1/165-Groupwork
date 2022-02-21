@@ -64,9 +64,9 @@ class PageRange:
 # return(True)
 
     def TailRead(self,position,column):
-    #tail_page = position // 512
-    #tail_page_location = position % 512
-    #true_false, encoding = self.tail_pages[tail_page].read(tail_page_location,column)
+        tail_page = position // 512                 #index of base page
+        tail_page_position = position % 512         #position inside base page we are reading
+        ret = self.tail_pages[tail_page].read(tail_page_position,column)
         tail_page = position // 512                 #index of base page
         tail_page_position = position % 512
         if ret[0] == False:
@@ -80,7 +80,7 @@ class PageRange:
         if position == None:
             tail_page = self.num_tail_record // 512
             tail_page_position = self.num_tail_record % 512
-            x0.write()#write to the end# To be updated/Continued
+            #x0.write()#write to the end# To be updated/Continued
             if tail_page_position == 0:
                 x0 = BP(self.num_columns)#Does it need the column and/or positon
                 self.tail_pages[self.count_tail_pages]  = x0 # Might be self.count_base_pages + 1 or just
