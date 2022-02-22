@@ -39,17 +39,20 @@ class Query:
     # Return True upon succesful insertion
     # Returns False if insert fails for whatever reason
     """
-    def insert(self, *columns):
-        #create metadata
-        self.table.num_base_record += 1
+    def insert(self, *columns):     #create metadata
+        
         indirection = None
-        rid = self.table.num_base_record
+        rid = self.table.num_base_record +1
         ts = int(time.time())
         schema_encoding = 0
         data = [indirection, rid, ts, schema_encoding]
         #append the insert data into the metadata array
-        data.append(columns)
-        self.table.write(data, rid)
+        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
+
+        for page in columns:
+            data.append(page)
+
+        self.table.write(data, None)
         return(True)
 
 
@@ -87,17 +90,22 @@ class Query:
             return False
         # get RID
         output = []
+        #print("primary_key",primary_key)
         self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+
         RID = output[0]
         # update column
-        ba_updated = []
+        ba_updated = [None] *len(columns)
         numCols = len(columns)
         for i in range(0, numCols):
             if(columns[i] == None):
-                ba_updated[i] = 1
-            else:
                 ba_updated[i] = 0
+            else:
+                ba_updated[i] = 1
+        print("ba_updated",ba_updated)
         self.table.update(RID, columns, ba_updated)
+        if RID ==2:
+            print("when i ==2", columns, ba_updated)
         return (True)
 
 

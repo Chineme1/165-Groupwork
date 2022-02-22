@@ -1,4 +1,4 @@
-from basepage import BasePage
+from lstore.basepage import BasePage
 from time import process_time
 
 
@@ -118,7 +118,6 @@ class PageRange:
            for i in range(0, self.num_columns):#Doesn't need 4 potentially
                 if BA[i] == 1 or CurrSchema[i] == 1:
                     num += pow(2,self.num_columns -i -1)
-           
            array = [None]*self.num_columns
            array[3] = num
            self.BaseWrite(array,position)
@@ -127,33 +126,35 @@ class PageRange:
            metadata[1] = self.num_tail_record+1
            metadata[2] = int(process_time())      #To be fixed/Checked
            metadata[3] = 0 #Nott being used noW
+           data= list(columns)         
            for i in range(4, self.num_columns):
-                if columns[i-4] == None:
-                    columns[i-4] = self.BaseRead(position, i)
-           
-           columns  = metadata + columns
+                if data[i-4] == None:
+                    data[i-4] = self.BaseRead(position, i)
+           data  = metadata + data        
+           print("list",data)  
            array[3] = None
            array[0] = self.num_tail_record+1
+           #print("array",array)
            self.BaseWrite(array, position)#To be checked
-           self.TailWrite(columns, None)
+           self.TailWrite(data, None)
            
            
-x0 = PageRange(5, 0, 0)
-for i in range(1, 10):
-    arr = [0, i, 0, 0, i]
-    print(x0.BaseWrite(arr, None))
-print("break")
-for i in range(1, 10):
-    print(x0.BaseRead(i, 4))
-x0.Update(5, [1], [0, 0, 0, 0, 1])
-print(x0.BaseRead(5, 4))
-x0.Update(5, [3], [0, 0, 0, 0, 1])
-print(x0.BaseRead(5, 4))
+# x0 = PageRange(5, 0, 0)
+# for i in range(1, 10):
+#     arr = [0, i, 0, 0, i]
+#     print(x0.BaseWrite(arr, None))
+# print("break")
+# for i in range(1, 10):
+#     print(x0.BaseRead(i, 4))
+# x0.Update(5, [1], [0, 0, 0, 0, 1])
+# print(x0.BaseRead(5, 4))
+# x0.Update(5, [3], [0, 0, 0, 0, 1])
+# print(x0.BaseRead(5, 4))
 
-print(x0.BaseRead(5, 1))
-print(x0.TailRead(1, 1))
-print(x0.TailRead(2, 1))
-x0.Delete(5)
-print(x0.BaseRead(5, 1))
-print(x0.TailRead(1, 1))
-print(x0.TailRead(2, 1))
+# print(x0.BaseRead(5, 1))
+# print(x0.TailRead(1, 1))
+# print(x0.TailRead(2, 1))
+# x0.Delete(5)
+# print(x0.BaseRead(5, 1))
+# print(x0.TailRead(1, 1))
+# print(x0.TailRead(2, 1))

@@ -1,4 +1,4 @@
-from page import Page
+from lstore.page import Page
 
 class BasePage:
     def __init__(self,columns):
@@ -11,13 +11,15 @@ class BasePage:
             self.page.append(x0)
 
     def write(self, columns, position):
-        if position == None:                                #write to the end 
+        if position == None:    
+            i=0                            #write to the end
             for i in range(self.columns):
                 if columns[i] != None :
                     self.page[i].write(columns[i],None)
             self.counter += 1
             return(self.counter)
-        else:                                               #write to the position
+        else:         
+            i = 0                                    #write to the position
             for i in range(self.columns):
                 if columns[i] != None :
                     self.page[i].write(columns[i],position)
