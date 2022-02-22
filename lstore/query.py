@@ -39,17 +39,19 @@ class Query:
     # Return True upon succesful insertion
     # Returns False if insert fails for whatever reason
     """
-    def insert(self, *columns):
-        #create metadata
-        self.table.num_base_record += 1
+    def insert(self, *columns):     #create metadata
+        
         indirection = None
-        rid = self.table.num_base_record
+        rid = self.table.num_base_record +1
         ts = int(time.time())
         schema_encoding = 0
         data = [indirection, rid, ts, schema_encoding]
         #append the insert data into the metadata array
-        data.append(columns)
-        self.table.write(data, rid)
+        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
+
+        for page in columns:
+            data.append(page)
+        self.table.write(data, None)
         return(True)
 
 
@@ -71,8 +73,9 @@ class Query:
         arr = []
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr.append(self.table.readValue(RID, i))  # read the data in the desired columns and append it to the list
-        return(arr)
+                arr.append(self.table.readValue(RID, i+4))  # read the data in the desired columns and append it to the list
+        ret = [Record(RID, index_value, arr)]
+        return(ret)
 
 
 
@@ -87,16 +90,18 @@ class Query:
             return False
         # get RID
         output = []
+        #print("primary_key",primary_key)
         self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
+
         RID = output[0]
         # update column
-        ba_updated = []
+        ba_updated = [0] *(len(columns)+4)
         numCols = len(columns)
         for i in range(0, numCols):
             if(columns[i] == None):
-                ba_updated[i] = 1
+                ba_updated[i+4] = 0
             else:
-                ba_updated[i] = 0
+                ba_updated[i+4] = 1
         self.table.update(RID, columns, ba_updated)
         return (True)
 
@@ -117,7 +122,7 @@ class Query:
         # Loop through the range and add all the read values
         num = 0
         for i in output:
-            num += self.table.readValue(i, aggregate_column_index)
+            num += self.table.readValue(i, aggregate_column_index+4)
         return(num)
 
 

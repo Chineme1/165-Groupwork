@@ -44,8 +44,8 @@ class Table:
     # Returns corresponding location of the given RID
     """
     def page_directory(self, RID):
-        position_page_range = RID//8192              #index of page range
-        position_base_page = (RID%8192)//512         #index of base page
+        position_page_range = (RID-1)//8192              #index of page range
+        position_base_page = ((RID-1)%8192)+1        #index of base page
         return position_page_range, position_base_page
 
 
@@ -56,7 +56,7 @@ class Table:
     """
     def readValue(self,baseRID,column):
         position_page_range, position_base_page = self.page_directory(baseRID)  # find the page range the given record is at
-        return self.page_ranges[position_page_range].BaseRead(baseRID,column)
+        return self.page_ranges[position_page_range].BaseRead(position_base_page,column)
     
     """
     # Read the entire record with given RID
@@ -73,19 +73,23 @@ class Table:
     # :param columns: a list of new values corresponding to each column
     # :param RID: RID of the record to be updated
     """
-    def write(self,columns,RID):
-        page_range = self.num_base_record // 8192
-        page_range_position = self.num_base_record % 8192
-        self.num_base_record += 1
-        if page_range_position == 0:    # when page range is full
-            self.page_ranges_num += 1
-            x0 = PageRange(self.num_columns, self.page_ranges_num, 0)  # create a new page range
-            self.page_ranges.append(x0)
-            x0.BaseWrite(columns,RID)
-        else:
-            self.page_ranges[page_range].BaseWrite(columns,RID)
-        return (True)
-
+    def write(self,columns,position):
+        if position == None:#Write to the end
+            page_range = self.num_base_record // 8192
+            page_range_position = self.num_base_record % 8192
+            if page_range_position == 0:    # when page range is full
+                self.page_ranges_num += 1
+                x0 = PageRange(self.num_columns+4, self.page_ranges_num, 0)  # create a new page range
+                self.page_ranges.append(x0)
+                self.num_base_record += 1
+                return x0.BaseWrite(columns,None)
+            else:
+                self.num_base_record += 1
+                return self.page_ranges[page_range].BaseWrite(columns,None)
+        else: #Write to the position
+            page_range = position // 8192
+            page_range_position = position % 8192
+            return self.page_ranges[page_range].BaseWrite(columns,page_range_position)
 
 
     """
@@ -106,7 +110,7 @@ class Table:
     """
     def update(self,baseRID,columns,BA):
         page_range, page_range_position = self.page_directory(baseRID)
-        self.page_ranges[page_range].Update(baseRID,columns,BA)
+        self.page_ranges[page_range].Update(page_range_position,columns,BA)
         if self.num_tail_record%(self.num_base_record*0.2) == 0:
         # merge the tail records with the base record when the number of tail records = 20% of the base records
             self.__merge()
@@ -119,7 +123,7 @@ class Table:
     """
     def delete(self,RID):
         position_page_range, position_base_page = self.page_directory(RID)   # find the location of the given record
-        self.page_ranges[position_page_range].Delete(RID)
+        self.page_ranges[position_page_range].Delete(position_base_page)
         return(True)
         
 
