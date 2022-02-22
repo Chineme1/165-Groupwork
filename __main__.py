@@ -8,11 +8,13 @@ db = Database()
 grades_table = db.create_table('Grades', 5, 0)
 query = Query(grades_table)
 keys = []
+
 insert_time_0 = process_time()
 for i in range(0, 10000):
-    query.insert(906659671 + i, 93, 0, 0, 0)
-    keys.append(906659671 + i)
+    query.insert(i+1, 93, 0, 0, 0)
+    keys.append(1+i)
 insert_time_1 = process_time()
+
 print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
 
 # Measuring update Performance
@@ -26,14 +28,15 @@ update_cols = [
 
 update_time_0 = process_time()
 for i in range(0, 10000):
-    query.update(choice(keys), *(choice(update_cols)))
+    query.update(1+i, *(choice(update_cols)))
 update_time_1 = process_time()
 print("Updating 10k records took:  \t\t\t", update_time_1 - update_time_0)
 
-# Measuring Select Performance
+ # Measuring Select Performance
 select_time_0 = process_time()
+
 for i in range(0, 10000):
-    query.select(choice(keys),0 , [1, 1, 1, 1, 1])
+    query.select(i+1,0 , [1, 1, 1, 1, 1])
 select_time_1 = process_time()
 print("Selecting 10k records took:  \t\t\t", select_time_1 - select_time_0)
 
@@ -49,6 +52,6 @@ print("Aggregate 10k of 100 record batch took:\t", agg_time_1 - agg_time_0)
 # Measuring Delete Performance
 delete_time_0 = process_time()
 for i in range(0, 10000):
-    query.delete(906659671 + i)
+    query.delete( 1+i)
 delete_time_1 = process_time()
 print("Deleting 10k records took:  \t\t\t", delete_time_1 - delete_time_0)
