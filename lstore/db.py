@@ -1,5 +1,4 @@
 from lstore.table import Table
-from lstore.bufferpool import BufferPool
 
 class Database():
 
@@ -13,7 +12,6 @@ class Database():
         pass
     #Optional
     def close(self):
-        BufferPool.flush()
         pass
 
     """
