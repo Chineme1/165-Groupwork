@@ -233,19 +233,8 @@ class BTree:
         return(True)
         
     def find(self, key, node, output):
-        if node == None:
-            return(output)
-        if key < node.entries[0].key:
-            return(self.find(key, node.leftChild, output))
-        if key == node.entries[0].key:
-            output.append(node.entries[0].RID)
-        if len(node.entries) == 1 or key > node.entries[1].key:
-            return(self.find(key, node.rightChild, output))
-        if key == node.entries[1].key:
-            output.append(node.entries[1].RID)
-        else:
-            return(self.find(key, node.middleChild, output))
-            
+            return(self.findRange(key, key, node, output))
+         
     def findRange(self, low, high, node, output): # need to test more
         if node == None:
             return(output)
@@ -273,7 +262,7 @@ class BTree:
         if node.rightChild != None:
             self.treePrint(node.rightChild)
 
-tree = BTree() 
+#tree = BTree() 
 # tree.insert(1, 1, tree.root)
 # tree.insert(10, 2, tree.root)
 # tree.insert(7, 3, tree.root)
@@ -287,14 +276,14 @@ tree = BTree()
 # output = []
 # print(tree.findRange(1, 10, tree.root, output))
 # insert_time_0 = process_time()
-for i in range (0, 100000):
-    num = randrange(0, 100000)
-    tree.insert(num, num, tree.root)
-    output = []
-    tree.find(num, tree.root, output)
-    if output[0] != num:
-        print("something went wrong")
-insert_time_1 = process_time()
+# for i in range (0, 100000):
+    # num = randrange(0, 100000)
+    # tree.insert(num, num, tree.root)
+    # output = []
+    # tree.find(num, tree.root, output)
+    # if output[0] != num:
+        # print("something went wrong")
+# insert_time_1 = process_time()
 
 #print("Inserting 10k records took:  \t\t\t", insert_time_1 - insert_time_0)
 # list = []
