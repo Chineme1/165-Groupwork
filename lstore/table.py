@@ -3,7 +3,6 @@ from msilib.schema import tables
 from .index import Index
 from .bufferpool import BufferPool
 from .PageRange import PageRange
-from .basepage import BasePage
 from time import time
 from .file import TxT
 
@@ -116,9 +115,6 @@ class Table:
     def update(self,baseRID,columns,BA):
         page_range, page_range_position = self.page_directory(baseRID)
         self.page_ranges[page_range].Update(page_range_position,columns,BA)
-        if self.num_tail_record%(self.num_base_record*0.2) == 0:
-        # merge the tail records with the base record when the number of tail records = 20% of the base records
-            self.__merge()
         return(True)
 
 
@@ -130,16 +126,5 @@ class Table:
         position_page_range, position_base_page = self.page_directory(RID)   # find the location of the given record
         self.page_ranges[position_page_range].Delete(position_base_page)
         return(True)
-        
 
-    """
-    # Merge tail records with corresponding base records
-    """
-    def __merge(self):
-        # load a copy of all base pages of the selected range into memory
-        # iterate the tail records in reverse order and apply them to the copied base pages
-        # to find the corresponding base record for tail record, need a BaseRID column to track (may use schema encoding?)
-        # TPS
-        pass
- 
 
