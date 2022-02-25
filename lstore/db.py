@@ -1,38 +1,61 @@
-from importlib.metadata import metadata
-from lstore.table import Table
-from lstore.bufferpool import BufferPool
+from .table import Table
 import os
-import csv
 
 class Database():
 
     def __init__(self):
         self.tables = []
+        path = None
         pass
 
+    # Not required for milestone1
+    #Optional
     def open(self, path):
-        if not os.path.exists(path):
-            os.mkdir(path)
-        with open('./ECS165/database.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            metadata_header = ['Indirection', 'RID', 'Timestamp', 'Schema Encoding', 'Data']
-            writer.writerow(metadata_header)
-    
-    """
-        lookup a specific row:
-
-        def find_record(RID):
-            with open('./ECS165/database.csv', 'r') as csvfile:
-                reader = csv.reader(csvfile)
-                find_RID = 0
-                for row in reader:
-                    if find_RID == RID:
-                        return row
-    """
-
+        self.path = path
+        if os.path.isdir(path) == False:
+            os.mkdir(path, mode = 0o777)
+        else:
+            with open(path + "/tables") as file:
+                while(1):
+                    line = file.readline()
+                    if line == '':
+                        break
+                    line = line[:-1]
+                    with open(path + "/%s"%line + "/%s.txt"%line) as table:
+                        name = table.readline()
+                        name = name[:-1]
+                        num_cols = int(table.readline())
+                        key = int(table.readline())
+                        temp = self.create_table(name, num_cols, key)
+                        num = int(table.readline())
+                        for i in range(0, num):
+                            with open(path + "/%s"%line + "/%s.txt"%i) as f:
+                                while(1):
+                                    test = f.readline()
+                                    if test == '':
+                                        break
+                                    rid = int(f.readline())
+                                    f.readline()
+                                    f.readline()
+                                    key = int(f.readline())
+                                    for i in range(0, num_cols-1):
+                                        f.readline()
+                                    temp.index.indices[0].insert(key, rid, temp.index.indices[0].root)
+    #Optional
     def close(self):
-        BufferPool.flush()
-        pass
+        with open(self.path + "/tables" , 'w') as txt_file:
+            for i in self.tables:
+                i.bufferpool.evict_all()
+                txt_file.write(i.name)
+                txt_file.write('\n')
+                with open(self.path + "/%s"%i.name + "/%s.txt"%i.name, 'w') as txt_file:
+                    txt_file.write(i.name)
+                    txt_file.write('\n')
+                    txt_file.write(str(i.num_columns))
+                    txt_file.write('\n')
+                    txt_file.write(str(i.key))
+                    txt_file.write('\n')
+                    txt_file.write(str(i.bufferpool.size2))
 
     """
     # Creates a new table
@@ -41,7 +64,10 @@ class Database():
     :param key: int             #Index of table key in columns
     """
     def create_table(self, name, num_columns, key_index):
-        table = Table(name, num_columns, key_index)
+        path = self.path + "/%s"%name
+        if os.path.isdir(path) == False:
+            os.mkdir(path, mode = 0o777)
+        table = Table(name, num_columns, key_index, path)
         self.tables.append(table)   # Append the newly created table to the table list
         return table
 

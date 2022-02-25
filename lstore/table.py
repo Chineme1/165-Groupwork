@@ -1,9 +1,11 @@
 from asyncio.windows_events import NULL
 from msilib.schema import tables
-from lstore.index import Index
-from lstore.PageRange import PageRange
-from lstore.basepage import BasePage
+from .index import Index
+from .bufferpool import BufferPool
+from .PageRange import PageRange
+from .basepage import BasePage
 from time import time
+from .file import TxT
 
 # define the metadata columns
 INDIRECTION_COLUMN = 0
@@ -20,6 +22,7 @@ class Record:
         self.columns = columns
 
 
+
 class Table:
 
     """
@@ -29,7 +32,7 @@ class Table:
     :param page_ranges: PageRange       #List of page ranges
     :param key: int                     #Index of table key in columns
     """
-    def __init__(self, name, num_columns, key):
+    def __init__(self, name, num_columns, key, path):
         self.name = name
         self.num_columns = num_columns   # number of columns besides the metadata columns
         self.key = key
@@ -38,6 +41,8 @@ class Table:
         self.num_tail_record = 0    # number of tail record in total
         self.page_ranges = []   # list of all page ranges
         self.index = Index(self)
+        self.file = TxT(num_columns, path)
+        self.bufferpool = BufferPool(10, num_columns, key, self.file)
 
 
     """

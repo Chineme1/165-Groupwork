@@ -1,4 +1,4 @@
-from lstore.basepage import BasePage
+from .basepage import BasePage
 from time import process_time
 
 

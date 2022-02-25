@@ -9,6 +9,7 @@ class Index:
 
     def __init__(self, table):
         # One index for each table. All our empty initially.
+        self.table = table
         self.indices = [None] *  table.num_columns
         self.indices[0] = BTree()
         
@@ -34,14 +35,18 @@ class Index:
     """
 
     def create_index(self, column_number):
-        pass
+        output = []
+        self.indices[0].findRange(0, 9223372036854775807, self.indices[0].root, output)
+        self.indices[column_number] = BTree()
+        for i in output:
+            self.indices[column_number].insert(self.table.readValue(i, column_number) , i, self.indices[column_number].root)
 
     """
     # optional: Drop index of specific column
     """
 
     def drop_index(self, column_number):
-        pass
+        self.indices[column_number] = None
 
 class BTreeEntry:
     def __init__(self, key, RID):

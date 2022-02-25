@@ -1,6 +1,7 @@
-from lstore.table import Table, Record
-from lstore.index import Index
-from lstore.page import Page
+from .table import Table, Record
+from .index import Index
+from .page import Page
+from .bufferpool import BufferPool
 import time # for timestamp
 
 
@@ -13,6 +14,7 @@ class Query:
     """
     def __init__(self, table):
         self.table = table
+        update = 0
         pass
 
 
@@ -29,7 +31,7 @@ class Query:
         output = []
         out = self.table.index.indices[0].find(primary_key, self.table.index.indices[0].root, output)
         RID = output[0]
-        self.table.delete(RID)
+        self.table.bufferpool.delete(RID)
         return(True)
             
         
@@ -47,11 +49,13 @@ class Query:
         schema_encoding = 0
         data = [indirection, rid, ts, schema_encoding]
         #append the insert data into the metadata array
-        self.table.index.indices[0].insert(columns[0], rid, self.table.index.indices[0].root)
-
+        for i in range(0, self.table.num_columns):
+            if self.table.index.indices[i] != None:
+                self.table.index.indices[i].insert(columns[i], rid, self.table.index.indices[i].root)
         for page in columns:
             data.append(page)
-        self.table.write(data, None)
+        self.table.bufferpool.writeValue(data, rid)
+        self.table.num_base_record += 1
         return(True)
 
 
@@ -73,7 +77,7 @@ class Query:
         arr = []
         for i in range (0, numCols):
             if query_columns[i] == 1:   # check which values in the query_columns are 1
-                arr.append(self.table.readValue(RID, i+4))  # read the data in the desired columns and append it to the list
+                arr.append(self.table.bufferpool.readValue(RID, i+4))  # read the data in the desired columns and append it to the list
         ret = [Record(RID, index_value, arr)]
         return(ret)
 
@@ -102,7 +106,11 @@ class Query:
                 ba_updated[i+4] = 0
             else:
                 ba_updated[i+4] = 1
-        self.table.update(RID, columns, ba_updated)
+        self.table.bufferpool.update(RID, columns, ba_updated)
+        update += 1
+        if update == 100:
+            update = 0
+            self.table.bufferpool.merge()
         return (True)
 
 
@@ -122,7 +130,7 @@ class Query:
         # Loop through the range and add all the read values
         num = 0
         for i in output:
-            num += self.table.readValue(i, aggregate_column_index+4)
+            num += self.table.bufferpool.readValue(i, aggregate_column_index+4)
         return(num)
 
 

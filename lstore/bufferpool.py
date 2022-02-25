@@ -1,13 +1,9 @@
-
-from typing import Counter
 from lstore.PageRange import PageRange
-from lstore.table import Table
 
 class Node:
-    def __init__(self,num_columns,pr_key,key):
-        self.index = pr_key     #store the index of the node，format:pagerange*10000 + pagerange position
-        self.data =PageRange(num_columns,pr_key,key) #store the data of the pagerange containing rid
-        self.next = None
+    def __init__(self, pageRange):   
+        self.data = pageRange #store the data of the pagerange containing rid
+        self.child = None
         self.isdirt = 0 #dirt when it's 1
 
 
@@ -17,64 +13,92 @@ class LinkedList:
         self.headnode = None
         self.endnode = None
     
-
-class BufferPool:
-
-    def __init__(self, num_pages,num_columns,key):
-        self.dirtydata = []           #list that keeps track of all dirty pagerange
-        self.bufferpool = LinkedList()   #actually store the data
-        self.pagerange_index = []         # index of pagerange stored format: pagerange*10000 + pagerange position
+        
+class BufferPool:            
+            
+    def __init__(self, num_pages,num_columns, key,  file):
+        self.bufferpool = LinkedList()   #actually store the data       
         self.size = num_pages       # size of the bufferpool
         self.counter = 0           #count the num of pagerange
-        self.num_columns = num_columns
+        self.num_columns = num_columns+4
         self.key = key
-
-    def read_record(self,RID):
-        page_range_index = (RID-1)//8192 
-        index = page_range_index
-        find = 0
-        for bp_index in self.pagerange_index:
-            if index == bp_index:
-                find =1
-        if(find==0):
-            self.bufferpool.write_record(RID,self.num_columns,self.key)
-        else: 
-            node = Node(index)
-            self.bufferpool.last.next = node #let previous node point to node
-            self.bufferpool.endnode=node  #add node to the tail
+        self.file = file
+        self.size2 = 0
+            
+    def readValue(self,RID, column):
+        page_range_index = (RID-1)//8192
+        position = ((RID-1)%8192)+1 
+        find = self.find_page(page_range_index)
+        if find == None:
+            self.evict_page()
+            find = self.file.readPageRange(self.num_columns, page_range_index, self.key)
+            self.add_page(find)
+        return(find.BaseRead(position, column))
         
-        return self.bufferpool.node(index).data
-
-    def create_node(self,RID,num_columns,key):
-        page_range_index = (RID-1)//8192 
-        pr_key = page_range_index
-        node = Node(num_columns,pr_key,key)
-
-
-        if self.bufferpool.first == None:  #check the situation for creating first node
-            self.bufferpool.headnode = node
-    
-        self.bufferpool.last.next = node #let previous node point to node
-        self.bufferpool.endnode = node  #add node to the tail
-        self.pagerange_index.append(pr_key) #add index to basepage index list
-    
-    def write_record(self,RID):
-        if self.have_capacity():
-            self.create_node(RID,self.num_columns,self.key)
-            self.counter + 1 
-        else:
-            #check if the data is dirty first, didn't implement
-            #remove first node
-            self.create_node(RID,self.num_columns,self.key)
-
+    def update(self,RID, columns, updated):
+        page_range_index = (RID-1)//8192
+        position = ((RID-1)%8192)+1 
+        find = self.find_page(page_range_index)
+        if find == None:
+            self.evict_page()
+            find = self.file.readPageRange(self.num_columns, page_range_index, self.key)
+            self.add_page(find)
+        find.Update(position, columns, updated)
+        
+    def writeValue(self,data, RID):
+        page_range_index = (RID-1)//8192
+        position = ((RID-1)%8192)+1 
+        find = self.find_page(page_range_index)
+        if position == 1:
+            self.size2 += 1
+            find = PageRange(self.num_columns, page_range_index, self.key)
+            self.evict_page()
+            self.add_page(find)
+        elif find == None:
+            self.evict_page()
+            find = self.file.readPageRange(self.num_columns, page_range_index, self.key)
+            self.add_page(find)
+        find.BaseWrite(data, None)
+        
+    def delete(self,RID):
+        page_range_index = (RID-1)//8192
+        position = ((RID-1)%8192)+1 
+        find = self.find_page(page_range_index)
+        if find == None:
+            self.evict_page()
+            find = self.file.readPageRange(self.num_columns, page_range_index, self.key)
+            self.add_page(find)
+        find.Delete(position)
+        
+        
     def evict_page(self):
-        self.bufferPool.remove(self.bufferPool.headnode)
-
-    def have_capacity(self):
-        if self.counter< self.size:
-            return True
+        if self.counter == self.size:
+            self.file.writePageRange(self.bufferpool.headnode.data)
+            self.bufferpool.headnode = self.bufferpool.headnode.child
+            self.counter -= 1
+    
+    def evict_all(self):
+        while self.counter != 0:
+            self.file.writePageRange(self.bufferpool.headnode.data)
+            self.bufferpool.headnode = self.bufferpool.headnode.child
+            self.counter -= 1
+        
+    #def merge(self):
+           
+        
+    def add_page(self,pageRange):
+        new = Node(pageRange)
+        if self.bufferpool.headnode == None:
+            self.bufferpool.headnode = new
+            self.bufferpool.endnode = new
         else:
-            return False
-
-
-
+            self.bufferpool.endnode.child = new
+        self.counter += 1
+        
+    def find_page(self,index):
+        node = self.bufferpool.headnode
+        while node != None:
+            if node.data.key == index:
+                return(node.data)
+        return(None)
+        
