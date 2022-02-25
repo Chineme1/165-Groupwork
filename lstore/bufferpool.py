@@ -83,8 +83,11 @@ class BufferPool:
             self.bufferpool.headnode = self.bufferpool.headnode.child
             self.counter -= 1
         
-    #def merge(self):
-           
+    def merge(self):
+        nex = self.bufferpool.headnode
+        while nex != None:
+            nex.data.merge()
+            nex = nex.child
         
     def add_page(self,pageRange):
         new = Node(pageRange)

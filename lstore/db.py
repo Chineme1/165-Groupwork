@@ -14,7 +14,7 @@ class Database():
         self.path = path
         if os.path.isdir(path) == False:
             os.mkdir(path, mode = 0o777)
-        else:
+        elif os.path.exists(path + "/tables"): 
             with open(path + "/tables") as file:
                 while(1):
                     line = file.readline()

@@ -138,6 +138,15 @@ class PageRange:
            self.TailWrite(data, None)
            
            
+    def merge(self):
+        new = PageRange(self.num_columns, self.pr_key, self.key)
+        for i in range(1, self.num_base_record+1):
+            columns = []
+            for j in range(0, self.num_columns):
+                columns.append(self.BaseRead(i, j))
+            new.BaseWrite(columns, None)
+        return(new)
+           
 # x0 = PageRange(5, 0, 0)
 # for i in range(1, 10):
 #     arr = [0, i, 0, 0, i]

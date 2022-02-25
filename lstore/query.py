@@ -14,7 +14,7 @@ class Query:
     """
     def __init__(self, table):
         self.table = table
-        update = 0
+        self.updates = 0
         pass
 
 
@@ -107,9 +107,9 @@ class Query:
             else:
                 ba_updated[i+4] = 1
         self.table.bufferpool.update(RID, columns, ba_updated)
-        update += 1
-        if update == 100:
-            update = 0
+        self.updates += 1
+        if self.updates == 10000:
+            self.updates = 0
             self.table.bufferpool.merge()
         return (True)
 
