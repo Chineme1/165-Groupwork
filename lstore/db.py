@@ -1,5 +1,8 @@
+from importlib.metadata import metadata
 from lstore.table import Table
 from lstore.bufferpool import BufferPool
+import os
+import csv
 
 class Database():
 
@@ -7,11 +10,26 @@ class Database():
         self.tables = []
         pass
 
-    # Not required for milestone1
-    #Optional
     def open(self, path):
-        pass
-    #Optional
+        if not os.path.exists(path):
+            os.mkdir(path)
+        with open('./ECS165/database.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            metadata_header = ['Indirection', 'RID', 'Timestamp', 'Schema Encoding', 'Data']
+            writer.writerow(metadata_header)
+    
+    """
+        lookup a specific row:
+
+        def find_record(RID):
+            with open('./ECS165/database.csv', 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                find_RID = 0
+                for row in reader:
+                    if find_RID == RID:
+                        return row
+    """
+
     def close(self):
         BufferPool.flush()
         pass
