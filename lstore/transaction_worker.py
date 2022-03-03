@@ -16,14 +16,16 @@ class TransactionWorker:
     Appends t to transactions
     """
     def add_transaction(self, t):
+        t.num = len(self.transactions)+1
         self.transactions.append(t)
+        
 
     """
     Runs all transaction as a thread
     """
     def run(self):
-        pass
-        # here you need to create a thread and call __run
+        for i in self.transactions:
+            i.run()
     
 
     """

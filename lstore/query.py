@@ -42,7 +42,6 @@ class Query:
     # Returns False if insert fails for whatever reason
     """
     def insert(self, *columns):     #create metadata
-        
         indirection = None
         rid = self.table.num_base_record +1
         ts = int(time.time())

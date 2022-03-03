@@ -8,7 +8,8 @@ class Database():
         path = None
         pass
 
-
+    # Not required for milestone1
+    #Optional
     def open(self, path):
         self.path = path
         if os.path.isdir(path) == False:
@@ -40,9 +41,9 @@ class Database():
                                     for i in range(0, num_cols-1):
                                         f.readline()
                                     temp.index.indices[0].insert(key, rid, temp.index.indices[0].root)
-
+    #Optional
     def close(self):
-        with open(self.path + "/tables" , 'w') as txt_file:
+        with open(self.path + "/tables.txt" , 'w') as txt_file:
             for i in self.tables:
                 i.bufferpool.evict_all()
                 txt_file.write(i.name)

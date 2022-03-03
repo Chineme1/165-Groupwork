@@ -1,6 +1,6 @@
-import csv
+import os
 from .PageRange import PageRange
-
+import time
 class TxT:
     def __init__(self,num_columns, path):
         self.num_columns = num_columns
@@ -26,6 +26,9 @@ class TxT:
     def writePageRange(self, pageRange):
         index = pageRange.pr_key 
         path = self.path + "/%s.txt"%index
+        if os.path.exists(path): 
+            t = time.time()
+            os.rename(path, self.path + '/%s'%index + 'Time%s.txt'%t)
         with open(path, 'w') as txt_file: 
             string_array = ""
             for a in range(1,pageRange.num_base_record+1):
