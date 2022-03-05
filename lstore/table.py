@@ -132,18 +132,7 @@ class Table:
         return(True)
         
 
-    """
-    # Merge tail records with corresponding base records
-    """
-    def __merge(self):
-        # load a copy of all base pages of the selected range into memory
-        # iterate the tail records in reverse order and apply them to the copied base pages
-        # to find the corresponding base record for tail record, need a BaseRID column to track (may use schema encoding?)
-        # TPS
-        pass
-        
-        
-        
+
     def lock(key, thread):
         pass
         
