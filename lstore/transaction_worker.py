@@ -1,5 +1,6 @@
 from lstore.table import Table, Record
 from lstore.index import Index
+import time
 
 class TransactionWorker:
 
@@ -32,7 +33,7 @@ class TransactionWorker:
     Waits for the worker to finish
     """
     def join(self):
-        pass
+        time.sleep(2)
 
 
     def __run(self):
