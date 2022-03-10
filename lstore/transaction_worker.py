@@ -27,7 +27,7 @@ class TransactionWorker:
     def run(self):
         x= threading.Thread()#This is an instance of the thread
             #this should add the transactions to threads
-        x(self.__run()) #I don't know what this does or do we put it into the Thread.// Not sure#Why is it calliing itself. Is it meant to be recursive
+        x(self.__run(self)) # Not sure#Why is it calliing itself. Is it meant to be recursive
         x.start()
 
     """
