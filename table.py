@@ -6,6 +6,8 @@ from .PageRange import PageRange
 from .basepage import BasePage
 from time import time
 from .file import TxT
+from .lockmanager import LockManager
+
 
 # define the metadata columns
 INDIRECTION_COLUMN = 0
@@ -43,7 +45,7 @@ class Table:
         self.index = Index(self)
         self.file = TxT(num_columns, path)
         self.bufferpool = BufferPool(10, num_columns, key, self.file)
-
+        self.lockmanager = LockManager()
 
     """
     # Returns corresponding location of the given RID
@@ -132,14 +134,14 @@ class Table:
         return(True)
         
 
-    """
-    # Merge tail records with corresponding base records
-    """
-    def __merge(self):
-        # load a copy of all base pages of the selected range into memory
-        # iterate the tail records in reverse order and apply them to the copied base pages
-        # to find the corresponding base record for tail record, need a BaseRID column to track (may use schema encoding?)
-        # TPS
+
+    def lock(key, thread):
         pass
+        
+    def unlock(key):
+        pass
+        
+    def locked(key, thread):
+        return(False)
  
 

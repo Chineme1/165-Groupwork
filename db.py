@@ -5,17 +5,18 @@ class Database():
 
     def __init__(self):
         self.tables = []
-        path = None
+        self.path = None
         pass
 
     # Not required for milestone1
     #Optional
     def open(self, path):
         self.path = path
+        print(path + "/tables")
         if os.path.isdir(path) == False:
             os.mkdir(path, mode = 0o777)
-        elif os.path.exists(path + "/tables"): 
-            with open(path + "/tables") as file:
+        elif os.path.exists(path + "/tables.txt"): 
+            with open(path + "/tables.txt") as file:
                 while(1):
                     line = file.readline()
                     if line == '':
@@ -28,6 +29,7 @@ class Database():
                         key = int(table.readline())
                         temp = self.create_table(name, num_cols, key)
                         num = int(table.readline())
+                        temp.bufferpool.size2 = num
                         for i in range(0, num):
                             with open(path + "/%s"%line + "/%s.txt"%i) as f:
                                 while(1):
@@ -43,19 +45,19 @@ class Database():
                                     temp.index.indices[0].insert(key, rid, temp.index.indices[0].root)
     #Optional
     def close(self):
-        with open(self.path + "/tables" , 'w') as txt_file:
+        with open(self.path + "/tables.txt" , 'w') as txt_file:
             for i in self.tables:
                 i.bufferpool.evict_all()
                 txt_file.write(i.name)
                 txt_file.write('\n')
-                with open(self.path + "/%s"%i.name + "/%s.txt"%i.name, 'w') as txt_file:
-                    txt_file.write(i.name)
-                    txt_file.write('\n')
-                    txt_file.write(str(i.num_columns))
-                    txt_file.write('\n')
-                    txt_file.write(str(i.key))
-                    txt_file.write('\n')
-                    txt_file.write(str(i.bufferpool.size2))
+                with open(self.path + "/%s"%i.name + "/%s.txt"%i.name, 'w') as txt_file2:
+                    txt_file2.write(i.name)
+                    txt_file2.write('\n')
+                    txt_file2.write(str(i.num_columns))
+                    txt_file2.write('\n')
+                    txt_file2.write(str(i.key))
+                    txt_file2.write('\n')
+                    txt_file2.write(str(i.bufferpool.size2))
 
     """
     # Creates a new table

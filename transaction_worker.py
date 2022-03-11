@@ -1,6 +1,7 @@
 from lstore.table import Table, Record
 from lstore.index import Index
-
+import time
+import threading
 class TransactionWorker:
 
     """
@@ -16,15 +17,17 @@ class TransactionWorker:
     Appends t to transactions
     """
     def add_transaction(self, t):
+        t.num = len(self.transactions)+1
         self.transactions.append(t)
+        
 
     """
     Runs all transaction as a thread
     """
     def run(self):
-        pass
-        # here you need to create a thread and call __run
-    
+        x= threading.Thread()#This is an instance of the thread
+        self.__run() #this calls the __run and puts it in a thread
+        x.start() #This starts the thread
 
     """
     Waits for the worker to finish
