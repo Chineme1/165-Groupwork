@@ -9,7 +9,6 @@ class Transaction:
     def __init__(self):
         self.queries = []
         self.num = 0
-        self.listInserts = []
         self.listLocks = []
 
     """
@@ -26,13 +25,13 @@ class Transaction:
     # If you choose to implement this differently this method must still return True if transaction commits or False on abort
     def run(self):
         for query, args in self.queries:
-            if self.locked(query, args, self.num) == True:
-                return self.abort()
-            else:
-                self.lock(query, args, self.num)
+                success = self.lock(query, args, self.num)
+                if success == False:
+                    return self.abort()
         return self.commit()
 
     def abort(self):
+        self.unlock()
         return False
 
     def commit(self):
@@ -43,15 +42,25 @@ class Transaction:
         
     def lock(self, query, args, num):
         if query.__name__ == 'insert':
-            self.listInserts.append(args[0])
+            output = []
+            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
+            self.listLocks.append(output[0])
+            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'delete':
-            query.table.lock(args[0], 0)
-            self.listLocks.append(args[0])
+            output = []
+            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
+            self.listLocks.append(output[0])
+            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'select':
-            pass
+            output = []
+            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
+            self.listLocks.append(output[0])
+            return(query.table.lockmanager.GetShared(self.num, output[0]))
         elif query.__name__ == 'update':
-            query.table.lock(args[1][0], self.num)
-            self.listLocks.append(args[1][0])
+            output = []
+            query.table.index.indices[0].find(args[1][0], query.table.index.indices[0].root, output)
+            self.listLocks.append(output[0])
+            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'sum':
             pass
         else:
@@ -59,31 +68,33 @@ class Transaction:
 
     def unlock(self):
         for i in self.listLocks:
-            query.table.unlock(i)
+            query.table.lockmanager.unlock(self.num, i)
+        self.listLocks = []
     
-    def locked(self, query, args, num):
-        if query.__name__ == 'insert':
-            return(False)
-        elif query.__name__ == 'delete':
-            for i in self.listLocks:
-                if i == args[0]:
-                    return(False)
-            else:
-                return(query.table.locked(args[0], 0))
-        elif query.__name__ == 'select':
-            return(False)
-        elif query.__name__ == 'update':
-            for i in self.listLocks:
-                if i == args[1][0]:
-                    return(False)
-            else:
-                return(query.table.locked(args[1][0], 0))
-        elif query.__name__ == 'sum':
-            return(False)
-        else:
-            print("invalid function name?")
+    # def locked(self, query, args, num):
+        # if query.__name__ == 'insert':
+            # return(query.table.lockamanger.locked(self.num, args[0]))
+        # elif query.__name__ == 'delete':
+            # for i in self.listLocks:
+                # if i == args[0]:
+                    # return(False)
+            # else:
+                # return(query.table.locked(args[0], 0))
+        # elif query.__name__ == 'select':
+            # return(False)
+        # elif query.__name__ == 'update':
+            # for i in self.listLocks:
+                # if i == args[1][0]:
+                    # return(False)
+            # else:
+                # return(query.table.locked(args[1][0], 0))
+        # elif query.__name__ == 'sum':
+            # return(False)
+        # else:
+            # print("invalid function name?")
     
 
-
-#make sure to swap number of threads
-#functions in transaction worker will need threading implemented
+#sum function
+#check if lock is present in unlock function
+#add lockamanger to table
+#using key or rid?
