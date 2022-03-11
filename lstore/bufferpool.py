@@ -101,7 +101,8 @@ class BufferPool:
     def find_page(self,index):
         node = self.bufferpool.headnode
         while node != None:
-            if node.data.key == index:
+            if node.data.pr_key == index:
                 return(node.data)
+            node = node.child
         return(None)
         

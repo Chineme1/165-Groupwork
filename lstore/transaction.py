@@ -28,8 +28,8 @@ class Transaction:
     def run(self):
         for query, args in self.queries:
                 success = self.lock(query, args, self.num)
-                print(query.__name__)
-                print(success)
+                #print(query.__name__)
+                #print(success)
                 if success == False:
                     return self.abort()
         return self.commit()
