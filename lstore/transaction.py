@@ -11,6 +11,7 @@ class Transaction:
         self.num = 0
         self.listLocks = []
         self.inserts = []
+        self.listRID = []
 
     """
     # Adds the given query to this transaction
@@ -27,6 +28,8 @@ class Transaction:
     def run(self):
         for query, args in self.queries:
                 success = self.lock(query, args, self.num)
+                print(query.__name__)
+                print(success)
                 if success == False:
                     return self.abort()
         return self.commit()
@@ -50,21 +53,24 @@ class Transaction:
                 return(True)
             output = []
             query.__self__.table.index.indices[0].find(args[0], query.__self__.table.index.indices[0].root, output)
-            self.listLocks.append(output[0])
+            self.listLocks.append(query)
+            self.listRID.append(output[0])
             return(query.__self__.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'select':
             if args[0] in self.inserts:
                 return(True)
             output = []
             query.__self__.table.index.indices[0].find(args[0], query.__self__.table.index.indices[0].root, output)
-            self.listLocks.append(output[0])
+            self.listLocks.append(query)
+            self.listRID.append(output[0])
             return(query.__self__.table.lockmanager.GetShared(self.num, output[0]))
         elif query.__name__ == 'update':
             if args[0] in self.inserts:
                 return(True)
             output = []
-            query.__self__.table.index.indices[0].find(args[1][0], query.__self__.table.index.indices[0].root, output)
-            self.listLocks.append(output[0])
+            query.__self__.table.index.indices[0].find(args[0], query.__self__.table.index.indices[0].root, output)
+            self.listLocks.append(query)
+            self.listRID.append(output[0])
             return(query.__self__.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'sum':
             pass
@@ -72,9 +78,10 @@ class Transaction:
             print("invalid function name?")
 
     def unlock(self):
-        for i in self.listLocks:
-            query.__self__.table.lockmanager.unlock(self.num, i)
+        for i in range(0, len(self.listLocks)):
+            self.listLocks[i].__self__.table.lockmanager.unlock(self.num, self.listRID[i])
         self.listLocks = []
+        self.listRID = []
     
     # def locked(self, query, args, num):
         # if query.__name__ == 'insert':
