@@ -10,6 +10,7 @@ class Transaction:
         self.queries = []
         self.num = 0
         self.listLocks = []
+        self.inserts = []
 
     """
     # Adds the given query to this transaction
@@ -42,25 +43,29 @@ class Transaction:
         
     def lock(self, query, args, num):
         if query.__name__ == 'insert':
-            output = []
-            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
-            self.listLocks.append(output[0])
-            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
+            self.inserts.append(args[0])
+            return(True)
         elif query.__name__ == 'delete':
+            if args[0] in self.inserts:
+                return(True)
             output = []
-            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
+            query.__self__.table.index.indices[0].find(args[0], query.__self__.table.index.indices[0].root, output)
             self.listLocks.append(output[0])
-            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
+            return(query.__self__.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'select':
+            if args[0] in self.inserts:
+                return(True)
             output = []
-            query.table.index.indices[0].find(args[0], query.table.index.indices[0].root, output)
+            query.__self__.table.index.indices[0].find(args[0], query.__self__.table.index.indices[0].root, output)
             self.listLocks.append(output[0])
-            return(query.table.lockmanager.GetShared(self.num, output[0]))
+            return(query.__self__.table.lockmanager.GetShared(self.num, output[0]))
         elif query.__name__ == 'update':
+            if args[0] in self.inserts:
+                return(True)
             output = []
-            query.table.index.indices[0].find(args[1][0], query.table.index.indices[0].root, output)
+            query.__self__.table.index.indices[0].find(args[1][0], query.__self__.table.index.indices[0].root, output)
             self.listLocks.append(output[0])
-            return(query.table.lockmanager.GetExclusive(self.num, output[0]))
+            return(query.__self__.table.lockmanager.GetExclusive(self.num, output[0]))
         elif query.__name__ == 'sum':
             pass
         else:
@@ -68,7 +73,7 @@ class Transaction:
 
     def unlock(self):
         for i in self.listLocks:
-            query.table.lockmanager.unlock(self.num, i)
+            query.__self__.table.lockmanager.unlock(self.num, i)
         self.listLocks = []
     
     # def locked(self, query, args, num):

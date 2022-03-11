@@ -6,6 +6,8 @@ from .PageRange import PageRange
 from .basepage import BasePage
 from time import time
 from .file import TxT
+from .lockmanager import LockManager
+
 
 # define the metadata columns
 INDIRECTION_COLUMN = 0
@@ -43,7 +45,7 @@ class Table:
         self.index = Index(self)
         self.file = TxT(num_columns, path)
         self.bufferpool = BufferPool(10, num_columns, key, self.file)
-
+        self.lockmanager = LockManager()
 
     """
     # Returns corresponding location of the given RID

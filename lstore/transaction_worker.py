@@ -26,14 +26,14 @@ class TransactionWorker:
     """
     def run(self):
         x= threading.Thread()#This is an instance of the thread
-        x(self.__run(self)) #this calls the __run and puts it in a thread
+        self.__run() #this calls the __run and puts it in a thread
         x.start() #This starts the thread
 
     """
     Waits for the worker to finish
     """
     def join(self):
-        time.sleep(2)
+        pass
 
 
     def __run(self):

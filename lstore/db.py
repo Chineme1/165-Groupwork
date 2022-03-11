@@ -5,17 +5,18 @@ class Database():
 
     def __init__(self):
         self.tables = []
-        path = None
+        self.path = None
         pass
 
     # Not required for milestone1
     #Optional
     def open(self, path):
         self.path = path
+        print(path + "/tables")
         if os.path.isdir(path) == False:
             os.mkdir(path, mode = 0o777)
-        elif os.path.exists(path + "/tables"): 
-            with open(path + "/tables") as file:
+        elif os.path.exists(path + "/tables.txt"): 
+            with open(path + "/tables.txt") as file:
                 while(1):
                     line = file.readline()
                     if line == '':

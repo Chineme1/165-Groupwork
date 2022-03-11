@@ -1,8 +1,5 @@
 import threading
-from typing_extensions import Self
-from transaction import Transaction
 
-import threading, time, random
  
 mutex = threading.Lock()
 
