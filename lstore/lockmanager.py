@@ -53,18 +53,23 @@ class LockManager:
             self.d[rid].exclusive = transaction
             mutex.release()
             return True
+        if len(self.d[rid].shared)==0 and self.d[rid].exclusive == transaction:
+            mutex.release()
+            return True
+        return False
 
     def unlock(self,transaction,rid):
         #delete the entry when delete the lock
         global mutex
         mutex.acquire()
-        if self.d[rid].exclusive == transaction:
-            self.d[rid].exclusive = None
-        for i in self.d[rid].shared:
-            if i == transaction:
-                i = None
-        if self.d[rid].exclusive==None and len(self.d[rid].shared)==0:
-            del self.d[rid]
-        #if no exlusive and shared lock then delete the entry
+        if rid in self.d:
+            if self.d[rid].exclusive == transaction:
+                self.d[rid].exclusive = None
+            for i in self.d[rid].shared:
+                if i == transaction:
+                    i = None
+            if self.d[rid].exclusive==None and len(self.d[rid].shared)==0:
+                del self.d[rid]
+            #if no exlusive and shared lock then delete the entry
         mutex.release()
         return True
