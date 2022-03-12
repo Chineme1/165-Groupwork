@@ -46,6 +46,7 @@ class Table:
         self.file = TxT(num_columns, path)
         self.bufferpool = BufferPool(10, num_columns, key, self.file)
         self.lockmanager = LockManager()
+        self.updates = 0
 
     """
     # Returns corresponding location of the given RID

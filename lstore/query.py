@@ -3,6 +3,8 @@ from .index import Index
 from .page import Page
 from .bufferpool import BufferPool
 import time # for timestamp
+import threading
+
 
 
 class Query:
@@ -14,7 +16,6 @@ class Query:
     """
     def __init__(self, table):
         self.table = table
-        self.updates = 0
         pass
 
 
@@ -106,10 +107,12 @@ class Query:
             else:
                 ba_updated[i+4] = 1
         self.table.bufferpool.update(RID, columns, ba_updated)
-        self.updates += 1
-        if self.updates == 10000:
-            self.updates = 0
-            self.table.bufferpool.merge()
+        self.table.updates += 1
+        if self.table.updates == 10000:
+            background =backgroundMerge(self.table.bufferpool)
+            self.table.updates = 0
+            background.start()
+            background.join()
         return (True)
 
 
@@ -150,3 +153,12 @@ class Query:
             u = self.update(key, *updated_columns)
             return u
         return False
+
+class backgroundMerge(threading.Thread):
+    def __init__(self,bufferpool):
+        threading.Thread.__init__(self)
+        self.bufferpool = bufferpool
+
+    def run(self):
+        self.bufferpool.merge()
+        
