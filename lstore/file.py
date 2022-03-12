@@ -14,17 +14,13 @@ class TxT:
             while(1):
                 columns = []
                 for i in range(0, self.num_columns+4):
-                    """
-                    line = f.readline()
-                    if line == '':
-                    """
+
                     line = f.read(8)
                     if not line:
                         return(output)
                     if i == 0 or i == 3:
                         line = '0'
                         columns.append(int(line))
-                    #columns.append(int((line)))
                     else:
                         columns.append(int.from_bytes(line, 'big'))
                 output.BaseWrite(columns, None)
@@ -44,12 +40,6 @@ class TxT:
 
                     intvalue = pageRange.BaseRead(a,i)
                     txt_file.write(intvalue.to_bytes(8, 'big'))
-                    """
-                    string_array+= str(pageRange.BaseRead(a,i))
-                    string_array+='\n'
-                    
-            txt_file.write(string_array)
-            """
         return False
 
 
