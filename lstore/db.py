@@ -31,18 +31,20 @@ class Database():
                         num = int(table.readline())
                         temp.bufferpool.size2 = num
                         for i in range(0, num):
-                            with open(path + "/%s"%line + "/%s.txt"%i) as f:
+                            with open(path + "/%s"%line + "/%s.txt"%i, "rb") as f:
                                 while(1):
-                                    test = f.readline()
-                                    if test == '':
+                                    test = f.read(8)
+                                    if not test:
                                         break
-                                    rid = int(f.readline())
-                                    f.readline()
-                                    f.readline()
-                                    key = int(f.readline())
+                                    rid = int.from_bytes(f.read(8), 'big')
+                                    f.read(8)
+                                    f.read(8)
+                                    key = int.from_bytes(f.read(8), 'big')
                                     for i in range(0, num_cols-1):
-                                        f.readline()
+                                        f.read(8)
                                     temp.index.indices[0].insert(key, rid, temp.index.indices[0].root)
+
+
     #Optional
     def close(self):
         with open(self.path + "/tables.txt" , 'w') as txt_file:
