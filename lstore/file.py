@@ -10,16 +10,23 @@ class TxT:
     def readPageRange(self, num_columns,index,key):
         output = PageRange(num_columns, index, key)
         path = self.path + '/%s.txt'%index
-        with open(path) as f:
+        with open(path, "rb") as f:
             while(1):
                 columns = []
                 for i in range(0, self.num_columns+4):
+                    """
                     line = f.readline()
                     if line == '':
+                    """
+                    line = f.read(8)
+                    if not line:
                         return(output)
                     if i == 0 or i == 3:
                         line = '0'
-                    columns.append(int((line)))
+                        columns.append(int(line))
+                    #columns.append(int((line)))
+                    else:
+                        columns.append(int.from_bytes(line, 'big'))
                 output.BaseWrite(columns, None)
         return(output)
 
@@ -29,13 +36,20 @@ class TxT:
         if os.path.exists(path): 
             t = time.time()
             os.rename(path, self.path + '/%s'%index + 'Time%s.txt'%t)
-        with open(path, 'w') as txt_file: 
+        with open(path, 'wb') as txt_file:
             string_array = ""
             for a in range(1,pageRange.num_base_record+1):
-                    for i in range(0,pageRange.num_columns):
-                        string_array+= str(pageRange.BaseRead(a,i))
-                        string_array+='\n'
+
+                for i in range(0,pageRange.num_columns):
+
+                    intvalue = pageRange.BaseRead(a,i)
+                    txt_file.write(intvalue.to_bytes(8, 'big'))
+                    """
+                    string_array+= str(pageRange.BaseRead(a,i))
+                    string_array+='\n'
+                    
             txt_file.write(string_array)
+            """
         return False
 
 
