@@ -119,9 +119,6 @@ class Table:
     def update(self,baseRID,columns,BA):
         page_range, page_range_position = self.page_directory(baseRID)
         self.page_ranges[page_range].Update(page_range_position,columns,BA)
-        if self.num_tail_record%(self.num_base_record*0.2) == 0:
-        # merge the tail records with the base record when the number of tail records = 20% of the base records
-            self.__merge()
         return(True)
 
 
@@ -133,16 +130,4 @@ class Table:
         position_page_range, position_base_page = self.page_directory(RID)   # find the location of the given record
         self.page_ranges[position_page_range].Delete(position_base_page)
         return(True)
-        
-
-
-    def lock(key, thread):
-        pass
-        
-    def unlock(key):
-        pass
-        
-    def locked(key, thread):
-        return(False)
- 
 
